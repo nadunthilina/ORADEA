@@ -37,7 +37,7 @@ export default function AdminDashboard() {
     if (!isAuthenticated) return;
     // Poll for new orders every 5 seconds
     const fetchOrders = () => {
-      fetch('http://localhost:5000/api/orders')
+      fetch('/api/orders')
         .then(res => res.json())
         .then(data => {
           if (data.success) {
@@ -55,7 +55,7 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (isAuthenticated && activeTab === 'users') {
-      fetch('http://localhost:5000/api/users')
+      fetch('/api/users')
         .then(res => res.json())
         .then(data => {
           if (data.success) {
@@ -69,7 +69,7 @@ export default function AdminDashboard() {
   }, [isAuthenticated, activeTab]);
 
   const fetchProducts = () => {
-    fetch('http://localhost:5000/api/products')
+    fetch('/api/products')
       .then(res => res.json())
       .then(data => {
         if (data.success) setProducts(data.products);
@@ -88,7 +88,7 @@ export default function AdminDashboard() {
       unit: formData.get('unit') || '1 portion',
     };
 
-    const url = editingProduct ? `http://localhost:5000/api/products/${editingProduct.id}` : 'http://localhost:5000/api/products';
+    const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
     const method = editingProduct ? 'PUT' : 'POST';
 
     try {
@@ -110,7 +110,7 @@ export default function AdminDashboard() {
   const handleDeleteProduct = async (id: string) => {
     if (!confirm('Are you sure you want to delete this item?')) return;
     try {
-      await fetch(`http://localhost:5000/api/products/${id}`, { method: 'DELETE' });
+      await fetch(`/api/products/${id}`, { method: 'DELETE' });
       fetchProducts();
     } catch (err) {
       console.error(err);
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
   const markAsPrinted = async (orderId: string) => {
     setPrintedOrdersSet(prev => new Set(prev).add(orderId));
     try {
-      await fetch(`http://localhost:5000/api/orders/${orderId}/status`, {
+      await fetch(`/api/orders/${orderId}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ orderStatus: 'PRINTED' })

@@ -29,7 +29,7 @@ export default function App() {
     if (!isAuthenticated) return;
     // Poll for new orders every 5 seconds
     const fetchOrders = () => {
-      fetch('http://localhost:5000/api/orders')
+      fetch('/api/orders')
         .then(res => res.json())
         .then(data => {
           if (data.success) {

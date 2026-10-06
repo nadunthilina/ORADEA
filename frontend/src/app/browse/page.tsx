@@ -11,7 +11,7 @@ export default function BrowsePage() {
   const [products, setProducts] = useState<any[]>(MOCK_PRODUCTS);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/products')
+    fetch('/api/products')
       .then(res => res.json())
       .then(data => {
         if (data.success && data.products && data.products.length > 0) {
