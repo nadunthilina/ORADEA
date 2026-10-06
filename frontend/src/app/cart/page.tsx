@@ -61,7 +61,7 @@ export default function CartPage() {
                 className="bg-white p-3 rounded-2xl shadow-sm border border-gray-100 flex gap-4"
               >
                 <div className="relative w-20 h-20 rounded-xl overflow-hidden bg-gray-50 flex-shrink-0">
-                  <Image src={item.image} alt={item.title} fill className="object-cover" />
+                  <Image src={item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80'} alt={item.title} fill className="object-cover" />
                 </div>
                 
                 <div className="flex-1 flex flex-col py-1">

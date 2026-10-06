@@ -7,6 +7,7 @@ export interface Product {
   unit: string;
   tags: string[];
   isPopular?: boolean;
+  image?: string;
 }
 
 export interface Category {
