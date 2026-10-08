@@ -86,7 +86,7 @@ app.post('/api/orders', async (req, res) => {
 
     // Fetch user to get email and send confirmation
     try {
-      if (req.body.customerId) {
+      if (req.body.customerId && req.body.customerId !== 'guest') {
         const user = await User.findById(req.body.customerId);
         if (user && user.email) {
           const { sendOrderConfirmationEmail } = require('./utils/emailUtils');

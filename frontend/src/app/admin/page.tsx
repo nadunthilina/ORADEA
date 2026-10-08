@@ -161,7 +161,8 @@ export default function AdminDashboard() {
     `);
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => { printWindow.print(); printWindow.close(); markAsPrinted(order._id); }, 250);
+    markAsPrinted(order._id);
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
   };
 
   const printReceipt = (order: any) => {
@@ -208,7 +209,8 @@ export default function AdminDashboard() {
     `);
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => { printWindow.print(); printWindow.close(); markAsPrinted(order._id); }, 250);
+    markAsPrinted(order._id);
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
   };
 
   const printBoth = (order: any) => {
@@ -275,7 +277,8 @@ export default function AdminDashboard() {
     `);
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => { printWindow.print(); printWindow.close(); markAsPrinted(order._id); }, 250);
+    markAsPrinted(order._id);
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
   };
 
   if (!isAuthenticated) {
