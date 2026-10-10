@@ -139,7 +139,7 @@ export default function AdminDashboard() {
       <html>
         <head>
           <style>
-            body { font-family: monospace; width: 80mm; margin: 0; padding: 10px; font-size: 14px; }
+            body { font-family: monospace; width: 57mm; margin: 0; padding: 10px 0; font-size: 12px; }
             .divider { border-top: 1px dashed #000; margin: 10px 0; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
@@ -173,7 +173,7 @@ export default function AdminDashboard() {
       <html>
         <head>
           <style>
-            body { font-family: monospace; width: 80mm; margin: 0; padding: 10px; font-size: 14px; }
+            body { font-family: monospace; width: 57mm; margin: 0; padding: 10px 0; font-size: 12px; }
             .divider { border-top: 1px dashed #000; margin: 10px 0; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
@@ -221,14 +221,14 @@ export default function AdminDashboard() {
       <html>
         <head>
           <style>
-            body { font-family: monospace; width: 80mm; margin: 0; padding: 10px; font-size: 14px; }
+            body { font-family: monospace; width: 57mm; margin: 0; padding: 10px 0; font-size: 12px; }
             .divider { border-top: 1px dashed #000; margin: 10px 0; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
             .flex-between { display: flex; justify-content: space-between; }
             .spacer { height: 40px; }
             .cut-line { border-top: 1px dotted #000; margin: 20px 0; text-align: center; position: relative; }
-            .cut-line span { background: #fff; padding: 0 10px; position: relative; top: -10px; font-size: 12px; }
+            .cut-line span { background: #fff; padding: 0 10px; position: relative; top: -10px; font-size: 11px; }
           </style>
         </head>
         <body>

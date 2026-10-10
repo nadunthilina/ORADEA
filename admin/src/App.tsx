@@ -52,7 +52,7 @@ export default function App() {
       <html>
         <head>
           <style>
-            body { font-family: monospace; width: 80mm; margin: 0; padding: 10px; font-size: 14px; }
+            body { font-family: monospace; width: 57mm; margin: 0; padding: 10px 0; font-size: 12px; }
             .divider { border-top: 1px dashed #000; margin: 10px 0; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
@@ -85,7 +85,7 @@ export default function App() {
       <html>
         <head>
           <style>
-            body { font-family: monospace; width: 80mm; margin: 0; padding: 10px; font-size: 14px; }
+            body { font-family: monospace; width: 57mm; margin: 0; padding: 10px 0; font-size: 12px; }
             .divider { border-top: 1px dashed #000; margin: 10px 0; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
