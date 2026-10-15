@@ -143,14 +143,22 @@ export default function AdminDashboard() {
           <title>KOT #${order.orderId}</title>
           <style>
             @page {
-              size: 48mm auto;
+              size: 55mm auto;
               margin: 0mm;
             }
             @media print {
+              *, *:before, *:after {
+                box-sizing: border-box !important;
+              }
               html, body {
-                width: 48mm !important;
-                margin: 0 auto !important;
+                width: 47mm !important;
+                max-width: 47mm !important;
+                margin: 0 !important;
                 padding: 0 !important;
+                background: #fff !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
               }
             }
             * {
@@ -160,27 +168,27 @@ export default function AdminDashboard() {
             }
             body {
               font-family: 'Courier New', Courier, 'Noto Sans Sinhala', monospace;
-              width: 48mm;
-              max-width: 48mm;
-              margin: 0 auto;
-              padding: 4px 1.5mm 15px 1.5mm;
-              font-size: 9.5px;
+              width: 47mm;
+              max-width: 47mm;
+              margin: 0;
+              padding: 2px 1mm 12px 1mm;
+              font-size: 10px;
               line-height: 1.25;
               color: #000;
               background: #fff;
               word-break: break-word;
             }
-            .divider { border-top: 1px dashed #000; margin: 5px 0; }
+            .divider { border-top: 1px dashed #000; margin: 4px 0; width: 100%; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
             .items-table {
               width: 100%;
               border-collapse: collapse;
               table-layout: fixed;
-              font-size: 9.5px;
+              font-size: 10px;
               margin: 3px 0;
             }
-            .items-table th { padding: 2px 0; font-size: 9px; }
+            .items-table th { padding: 2px 0; font-size: 9.5px; }
             .items-table td { padding: 2px 0; vertical-align: top; }
           </style>
         </head>
@@ -215,7 +223,7 @@ export default function AdminDashboard() {
     printWindow.document.close();
     printWindow.focus();
     markAsPrinted(order._id);
-    setTimeout(() => { printWindow.print(); printWindow.close(); }, 300);
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 350);
   };
 
   const printReceipt = (order: any) => {
@@ -230,14 +238,22 @@ export default function AdminDashboard() {
           <title>Receipt #${order.orderId}</title>
           <style>
             @page {
-              size: 48mm auto;
+              size: 55mm auto;
               margin: 0mm;
             }
             @media print {
+              *, *:before, *:after {
+                box-sizing: border-box !important;
+              }
               html, body {
-                width: 48mm !important;
-                margin: 0 auto !important;
+                width: 47mm !important;
+                max-width: 47mm !important;
+                margin: 0 !important;
                 padding: 0 !important;
+                background: #fff !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
               }
             }
             * {
@@ -247,35 +263,35 @@ export default function AdminDashboard() {
             }
             body {
               font-family: 'Courier New', Courier, 'Noto Sans Sinhala', monospace;
-              width: 48mm;
-              max-width: 48mm;
-              margin: 0 auto;
-              padding: 4px 1.5mm 15px 1.5mm;
-              font-size: 9.5px;
+              width: 47mm;
+              max-width: 47mm;
+              margin: 0;
+              padding: 2px 1mm 12px 1mm;
+              font-size: 10px;
               line-height: 1.25;
               color: #000;
               background: #fff;
               word-break: break-word;
             }
-            .divider { border-top: 1px dashed #000; margin: 5px 0; }
+            .divider { border-top: 1px dashed #000; margin: 4px 0; width: 100%; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
-            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
+            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; font-size: 10px; }
             .items-table {
               width: 100%;
               border-collapse: collapse;
               table-layout: fixed;
-              font-size: 9.5px;
+              font-size: 10px;
               margin: 3px 0;
             }
-            .items-table th { padding: 2px 0; font-size: 9px; }
+            .items-table th { padding: 2px 0; font-size: 9.5px; }
             .items-table td { padding: 2px 0; vertical-align: top; }
           </style>
         </head>
         <body>
           <div class="text-center font-bold" style="font-size: 11.5px; line-height: 1.2;">SRI LANKAN FOOD ORADEA</div>
-          <div class="text-center" style="font-size: 8.5px; margin-top: 2px;">Hot, Spicy & Freshly Made</div>
-          <div class="text-center" style="font-size: 8.5px;">WhatsApp: +40 72 301 7320</div>
+          <div class="text-center" style="font-size: 9px; margin-top: 2px;">Hot, Spicy & Freshly Made</div>
+          <div class="text-center" style="font-size: 9px;">WhatsApp: +40 72 301 7320</div>
           <div class="divider"></div>
           <div><b>ORDER ID :</b> #${order.orderId}</div>
           <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
@@ -286,9 +302,9 @@ export default function AdminDashboard() {
           <table class="items-table">
             <thead>
               <tr style="border-bottom: 1px dashed #000;">
-                <th style="text-align: left; width: 54%;">ITEM</th>
+                <th style="text-align: left; width: 52%;">ITEM</th>
                 <th style="text-align: center; width: 16%;">QTY</th>
-                <th style="text-align: right; width: 30%;">PRICE</th>
+                <th style="text-align: right; width: 32%;">PRICE</th>
               </tr>
             </thead>
             <tbody>
@@ -308,8 +324,8 @@ export default function AdminDashboard() {
           <div class="flex-between font-bold" style="font-size: 11px;"><span>TOTAL DUE</span><span>Lei ${order.totalDue}</span></div>
           <div style="margin-top: 3px;"><b>PAYMENT  :</b> ${order.paymentMethod}</div>
           <div class="divider"></div>
-          <div class="text-center" style="font-size: 9px; margin-top: 4px;">Thank you for your order!</div>
-          <div class="text-center" style="font-size: 8.5px; margin-top: 2px;">*** HAVE A NICE DAY ***</div>
+          <div class="text-center" style="font-size: 9.5px; margin-top: 4px;">Thank you for your order!</div>
+          <div class="text-center" style="font-size: 9px; margin-top: 2px;">*** HAVE A NICE DAY ***</div>
           <div style="height: 15px;"></div>
         </body>
       </html>
@@ -317,7 +333,7 @@ export default function AdminDashboard() {
     printWindow.document.close();
     printWindow.focus();
     markAsPrinted(order._id);
-    setTimeout(() => { printWindow.print(); printWindow.close(); }, 300);
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 350);
   };
 
   const printBoth = (order: any) => {
@@ -332,14 +348,22 @@ export default function AdminDashboard() {
           <title>Order #${order.orderId}</title>
           <style>
             @page {
-              size: 48mm auto;
+              size: 55mm auto;
               margin: 0mm;
             }
             @media print {
+              *, *:before, *:after {
+                box-sizing: border-box !important;
+              }
               html, body {
-                width: 48mm !important;
-                margin: 0 auto !important;
+                width: 47mm !important;
+                max-width: 47mm !important;
+                margin: 0 !important;
                 padding: 0 !important;
+                background: #fff !important;
+                color: #000 !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
               }
             }
             * {
@@ -349,33 +373,33 @@ export default function AdminDashboard() {
             }
             body {
               font-family: 'Courier New', Courier, 'Noto Sans Sinhala', monospace;
-              width: 48mm;
-              max-width: 48mm;
-              margin: 0 auto;
-              padding: 4px 1.5mm 15px 1.5mm;
-              font-size: 9.5px;
+              width: 47mm;
+              max-width: 47mm;
+              margin: 0;
+              padding: 2px 1mm 12px 1mm;
+              font-size: 10px;
               line-height: 1.25;
               color: #000;
               background: #fff;
               word-break: break-word;
             }
-            .divider { border-top: 1px dashed #000; margin: 5px 0; }
+            .divider { border-top: 1px dashed #000; margin: 4px 0; width: 100%; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
-            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
+            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; font-size: 10px; }
             .items-table {
               width: 100%;
               border-collapse: collapse;
               table-layout: fixed;
-              font-size: 9.5px;
+              font-size: 10px;
               margin: 3px 0;
             }
-            .items-table th { padding: 2px 0; font-size: 9px; }
+            .items-table th { padding: 2px 0; font-size: 9.5px; }
             .items-table td { padding: 2px 0; vertical-align: top; }
-            .spacer { height: 12px; }
+            .spacer { height: 10px; }
             .cut-line {
-              border-top: 1px dotted #000;
-              margin: 12px 0;
+              border-top: 1px dashed #000;
+              margin: 10px 0;
               text-align: center;
               position: relative;
             }
@@ -384,7 +408,7 @@ export default function AdminDashboard() {
               padding: 0 4px;
               position: relative;
               top: -7px;
-              font-size: 8.5px;
+              font-size: 9px;
               font-weight: bold;
             }
           </style>
@@ -392,8 +416,8 @@ export default function AdminDashboard() {
         <body>
           <!-- RECEIPT SECTION -->
           <div class="text-center font-bold" style="font-size: 11.5px; line-height: 1.2;">SRI LANKAN FOOD ORADEA</div>
-          <div class="text-center" style="font-size: 8.5px; margin-top: 2px;">Hot, Spicy & Freshly Made</div>
-          <div class="text-center" style="font-size: 8.5px;">WhatsApp: +40 72 301 7320</div>
+          <div class="text-center" style="font-size: 9px; margin-top: 2px;">Hot, Spicy & Freshly Made</div>
+          <div class="text-center" style="font-size: 9px;">WhatsApp: +40 72 301 7320</div>
           <div class="divider"></div>
           <div><b>ORDER ID :</b> #${order.orderId}</div>
           <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
@@ -404,9 +428,9 @@ export default function AdminDashboard() {
           <table class="items-table">
             <thead>
               <tr style="border-bottom: 1px dashed #000;">
-                <th style="text-align: left; width: 54%;">ITEM</th>
+                <th style="text-align: left; width: 52%;">ITEM</th>
                 <th style="text-align: center; width: 16%;">QTY</th>
-                <th style="text-align: right; width: 30%;">PRICE</th>
+                <th style="text-align: right; width: 32%;">PRICE</th>
               </tr>
             </thead>
             <tbody>
@@ -426,7 +450,7 @@ export default function AdminDashboard() {
           <div class="flex-between font-bold" style="font-size: 11px;"><span>TOTAL DUE</span><span>Lei ${order.totalDue}</span></div>
           <div style="margin-top: 3px;"><b>PAYMENT  :</b> ${order.paymentMethod}</div>
           <div class="divider"></div>
-          <div class="text-center" style="font-size: 9px; margin-top: 4px;">Thank you for your order!</div>
+          <div class="text-center" style="font-size: 9.5px; margin-top: 4px;">Thank you for your order!</div>
 
           <div class="spacer"></div>
           <div class="cut-line"><span>✂️ CUT HERE ✂️</span></div>
@@ -462,7 +486,7 @@ export default function AdminDashboard() {
     printWindow.document.close();
     printWindow.focus();
     markAsPrinted(order._id);
-    setTimeout(() => { printWindow.print(); printWindow.close(); }, 300);
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 350);
   };
 
   if (!isAuthenticated) {
