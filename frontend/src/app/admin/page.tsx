@@ -143,14 +143,14 @@ export default function AdminDashboard() {
           <title>KOT #${order.orderId}</title>
           <style>
             @page {
-              size: 55mm auto;
+              size: 48mm auto;
               margin: 0mm;
             }
             @media print {
               html, body {
-                width: 55mm;
-                margin: 0;
-                padding: 0;
+                width: 48mm !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
               }
             }
             * {
@@ -159,33 +159,33 @@ export default function AdminDashboard() {
               padding: 0;
             }
             body {
-              font-family: 'Courier New', Courier, monospace;
-              width: 55mm;
-              max-width: 55mm;
+              font-family: 'Courier New', Courier, 'Noto Sans Sinhala', monospace;
+              width: 48mm;
+              max-width: 48mm;
               margin: 0 auto;
-              padding: 6px 3px 25px 3px;
-              font-size: 11px;
+              padding: 4px 1.5mm 15px 1.5mm;
+              font-size: 9.5px;
               line-height: 1.25;
               color: #000;
               background: #fff;
               word-break: break-word;
             }
-            .divider { border-top: 1px dashed #000; margin: 6px 0; }
+            .divider { border-top: 1px dashed #000; margin: 5px 0; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
             .items-table {
               width: 100%;
               border-collapse: collapse;
               table-layout: fixed;
-              font-size: 11px;
-              margin: 4px 0;
+              font-size: 9.5px;
+              margin: 3px 0;
             }
-            .items-table th { padding: 3px 0; }
-            .items-table td { padding: 3px 0; vertical-align: top; }
+            .items-table th { padding: 2px 0; font-size: 9px; }
+            .items-table td { padding: 2px 0; vertical-align: top; }
           </style>
         </head>
         <body>
-          <div class="text-center font-bold" style="font-size: 13px;">*** KITCHEN ORDER TICKET ***</div>
+          <div class="text-center font-bold" style="font-size: 11.5px;">*** KITCHEN ORDER TICKET ***</div>
           <div class="divider"></div>
           <div><b>ORDER ID :</b> #${order.orderId}</div>
           <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
@@ -194,15 +194,15 @@ export default function AdminDashboard() {
           <table class="items-table">
             <thead>
               <tr style="border-bottom: 1px dashed #000;">
-                <th style="text-align: center; width: 24%;">QTY</th>
-                <th style="text-align: left; width: 76%;">ITEM</th>
+                <th style="text-align: center; width: 22%;">QTY</th>
+                <th style="text-align: left; width: 78%;">ITEM</th>
               </tr>
             </thead>
             <tbody>
               ${order.items.map((i: any) => `
                 <tr>
-                  <td style="text-align: center; font-size: 13px; font-weight: bold; padding-right: 4px;">${i.quantity}x</td>
-                  <td style="font-size: 12px; font-weight: bold; word-break: break-word;">${i.title}</td>
+                  <td style="text-align: center; font-size: 11px; font-weight: bold; padding-right: 3px;">${i.quantity}x</td>
+                  <td style="font-size: 10px; font-weight: bold; word-break: break-word;">${i.title}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -230,14 +230,14 @@ export default function AdminDashboard() {
           <title>Receipt #${order.orderId}</title>
           <style>
             @page {
-              size: 55mm auto;
+              size: 48mm auto;
               margin: 0mm;
             }
             @media print {
               html, body {
-                width: 55mm;
-                margin: 0;
-                padding: 0;
+                width: 48mm !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
               }
             }
             * {
@@ -246,36 +246,36 @@ export default function AdminDashboard() {
               padding: 0;
             }
             body {
-              font-family: 'Courier New', Courier, monospace;
-              width: 55mm;
-              max-width: 55mm;
+              font-family: 'Courier New', Courier, 'Noto Sans Sinhala', monospace;
+              width: 48mm;
+              max-width: 48mm;
               margin: 0 auto;
-              padding: 6px 3px 25px 3px;
-              font-size: 10.5px;
+              padding: 4px 1.5mm 15px 1.5mm;
+              font-size: 9.5px;
               line-height: 1.25;
               color: #000;
               background: #fff;
               word-break: break-word;
             }
-            .divider { border-top: 1px dashed #000; margin: 6px 0; }
+            .divider { border-top: 1px dashed #000; margin: 5px 0; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
-            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; }
+            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
             .items-table {
               width: 100%;
               border-collapse: collapse;
               table-layout: fixed;
-              font-size: 10.5px;
-              margin: 4px 0;
+              font-size: 9.5px;
+              margin: 3px 0;
             }
-            .items-table th { padding: 3px 0; }
-            .items-table td { padding: 3px 0; vertical-align: top; }
+            .items-table th { padding: 2px 0; font-size: 9px; }
+            .items-table td { padding: 2px 0; vertical-align: top; }
           </style>
         </head>
         <body>
-          <div class="text-center font-bold" style="font-size: 13px; line-height: 1.2;">SRI LANKAN FOOD ORADEA</div>
-          <div class="text-center" style="font-size: 9.5px; margin-top: 2px;">Hot, Spicy & Freshly Made</div>
-          <div class="text-center" style="font-size: 9.5px;">WhatsApp: +40 72 301 7320</div>
+          <div class="text-center font-bold" style="font-size: 11.5px; line-height: 1.2;">SRI LANKAN FOOD ORADEA</div>
+          <div class="text-center" style="font-size: 8.5px; margin-top: 2px;">Hot, Spicy & Freshly Made</div>
+          <div class="text-center" style="font-size: 8.5px;">WhatsApp: +40 72 301 7320</div>
           <div class="divider"></div>
           <div><b>ORDER ID :</b> #${order.orderId}</div>
           <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
@@ -286,9 +286,9 @@ export default function AdminDashboard() {
           <table class="items-table">
             <thead>
               <tr style="border-bottom: 1px dashed #000;">
-                <th style="text-align: left; width: 52%;">ITEM</th>
+                <th style="text-align: left; width: 54%;">ITEM</th>
                 <th style="text-align: center; width: 16%;">QTY</th>
-                <th style="text-align: right; width: 32%;">PRICE</th>
+                <th style="text-align: right; width: 30%;">PRICE</th>
               </tr>
             </thead>
             <tbody>
@@ -305,11 +305,11 @@ export default function AdminDashboard() {
           <div class="flex-between"><span>SUBTOTAL</span><span>Lei ${order.subtotal}</span></div>
           <div class="flex-between"><span>DELIVERY FEE</span><span>Lei ${order.deliveryFee}</span></div>
           <div class="divider"></div>
-          <div class="flex-between font-bold" style="font-size: 12px;"><span>TOTAL DUE</span><span>Lei ${order.totalDue}</span></div>
+          <div class="flex-between font-bold" style="font-size: 11px;"><span>TOTAL DUE</span><span>Lei ${order.totalDue}</span></div>
           <div style="margin-top: 3px;"><b>PAYMENT  :</b> ${order.paymentMethod}</div>
           <div class="divider"></div>
-          <div class="text-center" style="font-size: 10px; margin-top: 4px;">Thank you for your order!</div>
-          <div class="text-center" style="font-size: 9px; margin-top: 2px;">*** HAVE A NICE DAY ***</div>
+          <div class="text-center" style="font-size: 9px; margin-top: 4px;">Thank you for your order!</div>
+          <div class="text-center" style="font-size: 8.5px; margin-top: 2px;">*** HAVE A NICE DAY ***</div>
           <div style="height: 15px;"></div>
         </body>
       </html>
@@ -332,14 +332,14 @@ export default function AdminDashboard() {
           <title>Order #${order.orderId}</title>
           <style>
             @page {
-              size: 55mm auto;
+              size: 48mm auto;
               margin: 0mm;
             }
             @media print {
               html, body {
-                width: 55mm;
-                margin: 0;
-                padding: 0;
+                width: 48mm !important;
+                margin: 0 auto !important;
+                padding: 0 !important;
               }
             }
             * {
@@ -348,52 +348,52 @@ export default function AdminDashboard() {
               padding: 0;
             }
             body {
-              font-family: 'Courier New', Courier, monospace;
-              width: 55mm;
-              max-width: 55mm;
+              font-family: 'Courier New', Courier, 'Noto Sans Sinhala', monospace;
+              width: 48mm;
+              max-width: 48mm;
               margin: 0 auto;
-              padding: 6px 3px 25px 3px;
-              font-size: 10.5px;
+              padding: 4px 1.5mm 15px 1.5mm;
+              font-size: 9.5px;
               line-height: 1.25;
               color: #000;
               background: #fff;
               word-break: break-word;
             }
-            .divider { border-top: 1px dashed #000; margin: 6px 0; }
+            .divider { border-top: 1px dashed #000; margin: 5px 0; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
-            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; }
+            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; }
             .items-table {
               width: 100%;
               border-collapse: collapse;
               table-layout: fixed;
-              font-size: 10.5px;
-              margin: 4px 0;
+              font-size: 9.5px;
+              margin: 3px 0;
             }
-            .items-table th { padding: 3px 0; }
-            .items-table td { padding: 3px 0; vertical-align: top; }
-            .spacer { height: 20px; }
+            .items-table th { padding: 2px 0; font-size: 9px; }
+            .items-table td { padding: 2px 0; vertical-align: top; }
+            .spacer { height: 12px; }
             .cut-line {
               border-top: 1px dotted #000;
-              margin: 15px 0;
+              margin: 12px 0;
               text-align: center;
               position: relative;
             }
             .cut-line span {
               background: #fff;
-              padding: 0 6px;
+              padding: 0 4px;
               position: relative;
-              top: -8px;
-              font-size: 9.5px;
+              top: -7px;
+              font-size: 8.5px;
               font-weight: bold;
             }
           </style>
         </head>
         <body>
           <!-- RECEIPT SECTION -->
-          <div class="text-center font-bold" style="font-size: 13px; line-height: 1.2;">SRI LANKAN FOOD ORADEA</div>
-          <div class="text-center" style="font-size: 9.5px; margin-top: 2px;">Hot, Spicy & Freshly Made</div>
-          <div class="text-center" style="font-size: 9.5px;">WhatsApp: +40 72 301 7320</div>
+          <div class="text-center font-bold" style="font-size: 11.5px; line-height: 1.2;">SRI LANKAN FOOD ORADEA</div>
+          <div class="text-center" style="font-size: 8.5px; margin-top: 2px;">Hot, Spicy & Freshly Made</div>
+          <div class="text-center" style="font-size: 8.5px;">WhatsApp: +40 72 301 7320</div>
           <div class="divider"></div>
           <div><b>ORDER ID :</b> #${order.orderId}</div>
           <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
@@ -404,9 +404,9 @@ export default function AdminDashboard() {
           <table class="items-table">
             <thead>
               <tr style="border-bottom: 1px dashed #000;">
-                <th style="text-align: left; width: 52%;">ITEM</th>
+                <th style="text-align: left; width: 54%;">ITEM</th>
                 <th style="text-align: center; width: 16%;">QTY</th>
-                <th style="text-align: right; width: 32%;">PRICE</th>
+                <th style="text-align: right; width: 30%;">PRICE</th>
               </tr>
             </thead>
             <tbody>
@@ -423,17 +423,17 @@ export default function AdminDashboard() {
           <div class="flex-between"><span>SUBTOTAL</span><span>Lei ${order.subtotal}</span></div>
           <div class="flex-between"><span>DELIVERY FEE</span><span>Lei ${order.deliveryFee}</span></div>
           <div class="divider"></div>
-          <div class="flex-between font-bold" style="font-size: 12px;"><span>TOTAL DUE</span><span>Lei ${order.totalDue}</span></div>
+          <div class="flex-between font-bold" style="font-size: 11px;"><span>TOTAL DUE</span><span>Lei ${order.totalDue}</span></div>
           <div style="margin-top: 3px;"><b>PAYMENT  :</b> ${order.paymentMethod}</div>
           <div class="divider"></div>
-          <div class="text-center" style="font-size: 10px; margin-top: 4px;">Thank you for your order!</div>
+          <div class="text-center" style="font-size: 9px; margin-top: 4px;">Thank you for your order!</div>
 
           <div class="spacer"></div>
           <div class="cut-line"><span>✂️ CUT HERE ✂️</span></div>
           <div class="spacer"></div>
 
           <!-- KOT SECTION -->
-          <div class="text-center font-bold" style="font-size: 13px;">*** KITCHEN ORDER TICKET ***</div>
+          <div class="text-center font-bold" style="font-size: 11.5px;">*** KITCHEN ORDER TICKET ***</div>
           <div class="divider"></div>
           <div><b>ORDER ID :</b> #${order.orderId}</div>
           <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
@@ -441,15 +441,15 @@ export default function AdminDashboard() {
           <table class="items-table">
             <thead>
               <tr style="border-bottom: 1px dashed #000;">
-                <th style="text-align: center; width: 24%;">QTY</th>
-                <th style="text-align: left; width: 76%;">ITEM</th>
+                <th style="text-align: center; width: 22%;">QTY</th>
+                <th style="text-align: left; width: 78%;">ITEM</th>
               </tr>
             </thead>
             <tbody>
               ${order.items.map((i: any) => `
                 <tr>
-                  <td style="text-align: center; font-size: 13px; font-weight: bold; padding-right: 4px;">${i.quantity}x</td>
-                  <td style="font-size: 12px; font-weight: bold; word-break: break-word;">${i.title}</td>
+                  <td style="text-align: center; font-size: 11px; font-weight: bold; padding-right: 3px;">${i.quantity}x</td>
+                  <td style="font-size: 10px; font-weight: bold; word-break: break-word;">${i.title}</td>
                 </tr>
               `).join('')}
             </tbody>
