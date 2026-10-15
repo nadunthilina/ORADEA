@@ -140,6 +140,7 @@ export default function AdminDashboard() {
       <html>
         <head>
           <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
           <title>KOT #${order.orderId}</title>
           <style>
             @page {
@@ -151,14 +152,19 @@ export default function AdminDashboard() {
                 box-sizing: border-box !important;
               }
               html, body {
-                width: 47mm !important;
-                max-width: 47mm !important;
+                width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #fff !important;
                 color: #000 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+              }
+              .receipt-container {
+                width: 38mm !important;
+                max-width: 38mm !important;
+                margin: 0 auto !important;
+                padding: 2px 1mm 12px 1mm !important;
               }
             }
             * {
@@ -168,55 +174,63 @@ export default function AdminDashboard() {
             }
             body {
               font-family: 'Courier New', Courier, 'Noto Sans Sinhala', monospace;
-              width: 47mm;
-              max-width: 47mm;
               margin: 0;
-              padding: 2px 1mm 12px 1mm;
-              font-size: 10px;
-              line-height: 1.25;
-              color: #000;
+              padding: 0;
               background: #fff;
+              color: #000;
+            }
+            .receipt-container {
+              width: 38mm;
+              max-width: 38mm;
+              margin: 0 auto;
+              padding: 2px 1mm 12px 1mm;
+              font-size: 7.5px;
+              line-height: 1.25;
               word-break: break-word;
             }
-            .divider { border-top: 1px dashed #000; margin: 4px 0; width: 100%; }
+            .divider { border-top: 1px dashed #000; margin: 3px 0; width: 100%; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
             .items-table {
               width: 100%;
               border-collapse: collapse;
               table-layout: fixed;
-              font-size: 10px;
-              margin: 3px 0;
+              font-size: 7.5px;
+              margin: 2px 0;
             }
-            .items-table th { padding: 2px 0; font-size: 9.5px; }
+            .items-table th { padding: 2px 0; font-size: 7.5px; }
             .items-table td { padding: 2px 0; vertical-align: top; }
           </style>
         </head>
         <body>
-          <div class="text-center font-bold" style="font-size: 11.5px;">*** KITCHEN ORDER TICKET ***</div>
-          <div class="divider"></div>
-          <div><b>ORDER ID :</b> #${order.orderId}</div>
-          <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
-          ${order.customerName ? `<div><b>CUSTOMER :</b> ${order.customerName}</div>` : ''}
-          <div class="divider"></div>
-          <table class="items-table">
-            <thead>
-              <tr style="border-bottom: 1px dashed #000;">
-                <th style="text-align: center; width: 22%;">QTY</th>
-                <th style="text-align: left; width: 78%;">ITEM</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${order.items.map((i: any) => `
-                <tr>
-                  <td style="text-align: center; font-size: 11px; font-weight: bold; padding-right: 3px;">${i.quantity}x</td>
-                  <td style="font-size: 10px; font-weight: bold; word-break: break-word;">${i.title}</td>
+          <div class="receipt-container">
+            <div class="text-center font-bold" style="font-size: 9.5px;">*** KITCHEN ORDER TICKET ***</div>
+            <div class="divider"></div>
+            <div style="font-size: 7.5px; line-height: 1.3;">
+              <div><b>ORDER ID :</b> #${order.orderId}</div>
+              <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
+              ${order.customerName ? `<div><b>CUSTOMER :</b> ${order.customerName}</div>` : ''}
+            </div>
+            <div class="divider"></div>
+            <table class="items-table">
+              <thead>
+                <tr style="border-bottom: 1px dashed #000;">
+                  <th style="text-align: center; width: 22%;">QTY</th>
+                  <th style="text-align: left; width: 78%;">ITEM</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          <div class="divider"></div>
-          <div style="height: 15px;"></div>
+              </thead>
+              <tbody>
+                ${order.items.map((i: any) => `
+                  <tr>
+                    <td style="text-align: center; font-size: 8.5px; font-weight: bold; padding-right: 2px;">${i.quantity}x</td>
+                    <td style="font-size: 8px; font-weight: bold; word-break: break-word;">${i.title}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div class="divider"></div>
+            <div style="height: 12px;"></div>
+          </div>
         </body>
       </html>
     `);
@@ -235,6 +249,7 @@ export default function AdminDashboard() {
       <html>
         <head>
           <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
           <title>Receipt #${order.orderId}</title>
           <style>
             @page {
@@ -246,14 +261,19 @@ export default function AdminDashboard() {
                 box-sizing: border-box !important;
               }
               html, body {
-                width: 47mm !important;
-                max-width: 47mm !important;
+                width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #fff !important;
                 color: #000 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+              }
+              .receipt-container {
+                width: 38mm !important;
+                max-width: 38mm !important;
+                margin: 0 auto !important;
+                padding: 2px 1mm 12px 1mm !important;
               }
             }
             * {
@@ -263,70 +283,78 @@ export default function AdminDashboard() {
             }
             body {
               font-family: 'Courier New', Courier, 'Noto Sans Sinhala', monospace;
-              width: 47mm;
-              max-width: 47mm;
               margin: 0;
-              padding: 2px 1mm 12px 1mm;
-              font-size: 10px;
-              line-height: 1.25;
-              color: #000;
+              padding: 0;
               background: #fff;
+              color: #000;
+            }
+            .receipt-container {
+              width: 38mm;
+              max-width: 38mm;
+              margin: 0 auto;
+              padding: 2px 1mm 12px 1mm;
+              font-size: 7.5px;
+              line-height: 1.25;
               word-break: break-word;
             }
-            .divider { border-top: 1px dashed #000; margin: 4px 0; width: 100%; }
+            .divider { border-top: 1px dashed #000; margin: 3px 0; width: 100%; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
-            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; font-size: 10px; }
+            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; font-size: 7.5px; line-height: 1.3; }
             .items-table {
               width: 100%;
               border-collapse: collapse;
               table-layout: fixed;
-              font-size: 10px;
-              margin: 3px 0;
+              font-size: 7.5px;
+              margin: 2px 0;
             }
-            .items-table th { padding: 2px 0; font-size: 9.5px; }
+            .items-table th { padding: 2px 0; font-size: 7.5px; }
             .items-table td { padding: 2px 0; vertical-align: top; }
           </style>
         </head>
         <body>
-          <div class="text-center font-bold" style="font-size: 11.5px; line-height: 1.2;">SRI LANKAN FOOD ORADEA</div>
-          <div class="text-center" style="font-size: 9px; margin-top: 2px;">Hot, Spicy & Freshly Made</div>
-          <div class="text-center" style="font-size: 9px;">WhatsApp: +40 72 301 7320</div>
-          <div class="divider"></div>
-          <div><b>ORDER ID :</b> #${order.orderId}</div>
-          <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
-          <div><b>CUSTOMER :</b> ${order.customerName}</div>
-          <div><b>PHONE    :</b> ${order.customerPhone || 'N/A'}</div>
-          <div><b>ADDRESS  :</b> ${order.deliveryAddress}</div>
-          <div class="divider"></div>
-          <table class="items-table">
-            <thead>
-              <tr style="border-bottom: 1px dashed #000;">
-                <th style="text-align: left; width: 52%;">ITEM</th>
-                <th style="text-align: center; width: 16%;">QTY</th>
-                <th style="text-align: right; width: 32%;">PRICE</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${order.items.map((i: any) => `
-                <tr>
-                  <td style="text-align: left; word-break: break-word; padding-right: 2px;">${i.title}</td>
-                  <td style="text-align: center; font-weight: bold;">${i.quantity}</td>
-                  <td style="text-align: right; white-space: nowrap;">Lei ${i.price}</td>
+          <div class="receipt-container">
+            <div class="text-center font-bold" style="font-size: 9.5px; line-height: 1.2;">SRI LANKAN FOOD ORADEA</div>
+            <div class="text-center" style="font-size: 7.5px; margin-top: 1px;">Hot, Spicy & Freshly Made</div>
+            <div class="text-center" style="font-size: 7.5px;">WhatsApp: +40 72 301 7320</div>
+            <div class="divider"></div>
+            <div style="font-size: 7.5px; line-height: 1.3;">
+              <div><b>ORDER ID :</b> #${order.orderId}</div>
+              <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
+              <div><b>CUSTOMER :</b> ${order.customerName}</div>
+              <div><b>PHONE    :</b> ${order.customerPhone || 'N/A'}</div>
+              <div><b>ADDRESS  :</b> ${order.deliveryAddress}</div>
+            </div>
+            <div class="divider"></div>
+            <table class="items-table">
+              <thead>
+                <tr style="border-bottom: 1px dashed #000;">
+                  <th style="text-align: left; width: 48%;">ITEM</th>
+                  <th style="text-align: center; width: 16%;">QTY</th>
+                  <th style="text-align: right; width: 36%;">PRICE</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          <div class="divider"></div>
-          <div class="flex-between"><span>SUBTOTAL</span><span>Lei ${order.subtotal}</span></div>
-          <div class="flex-between"><span>DELIVERY FEE</span><span>Lei ${order.deliveryFee}</span></div>
-          <div class="divider"></div>
-          <div class="flex-between font-bold" style="font-size: 11px;"><span>TOTAL DUE</span><span>Lei ${order.totalDue}</span></div>
-          <div style="margin-top: 3px;"><b>PAYMENT  :</b> ${order.paymentMethod}</div>
-          <div class="divider"></div>
-          <div class="text-center" style="font-size: 9.5px; margin-top: 4px;">Thank you for your order!</div>
-          <div class="text-center" style="font-size: 9px; margin-top: 2px;">*** HAVE A NICE DAY ***</div>
-          <div style="height: 15px;"></div>
+              </thead>
+              <tbody>
+                ${order.items.map((i: any) => `
+                  <tr>
+                    <td style="text-align: left; word-break: break-word; padding-right: 2px; font-weight: bold;">${i.title}</td>
+                    <td style="text-align: center; font-weight: bold; font-size: 8px;">${i.quantity}</td>
+                    <td style="text-align: right; white-space: nowrap; font-weight: bold;">Lei ${i.price}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div class="divider"></div>
+            <div class="flex-between"><span>SUBTOTAL</span><span>Lei ${order.subtotal}</span></div>
+            <div class="flex-between"><span>DELIVERY FEE</span><span>Lei ${order.deliveryFee}</span></div>
+            <div class="divider"></div>
+            <div class="flex-between font-bold" style="font-size: 9px;"><span>TOTAL DUE</span><span>Lei ${order.totalDue}</span></div>
+            <div style="margin-top: 2px; font-size: 7.5px;"><b>PAYMENT  :</b> ${order.paymentMethod}</div>
+            <div class="divider"></div>
+            <div class="text-center" style="font-size: 7.5px; margin-top: 3px;">Thank you for your order!</div>
+            <div class="text-center" style="font-size: 7px; margin-top: 1px;">*** HAVE A NICE DAY ***</div>
+            <div style="height: 12px;"></div>
+          </div>
         </body>
       </html>
     `);
@@ -345,6 +373,7 @@ export default function AdminDashboard() {
       <html>
         <head>
           <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
           <title>Order #${order.orderId}</title>
           <style>
             @page {
@@ -356,14 +385,19 @@ export default function AdminDashboard() {
                 box-sizing: border-box !important;
               }
               html, body {
-                width: 47mm !important;
-                max-width: 47mm !important;
+                width: 100% !important;
                 margin: 0 !important;
                 padding: 0 !important;
                 background: #fff !important;
                 color: #000 !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
+              }
+              .receipt-container {
+                width: 38mm !important;
+                max-width: 38mm !important;
+                margin: 0 auto !important;
+                padding: 2px 1mm 12px 1mm !important;
               }
             }
             * {
@@ -373,33 +407,37 @@ export default function AdminDashboard() {
             }
             body {
               font-family: 'Courier New', Courier, 'Noto Sans Sinhala', monospace;
-              width: 47mm;
-              max-width: 47mm;
               margin: 0;
-              padding: 2px 1mm 12px 1mm;
-              font-size: 10px;
-              line-height: 1.25;
-              color: #000;
+              padding: 0;
               background: #fff;
+              color: #000;
+            }
+            .receipt-container {
+              width: 38mm;
+              max-width: 38mm;
+              margin: 0 auto;
+              padding: 2px 1mm 12px 1mm;
+              font-size: 7.5px;
+              line-height: 1.25;
               word-break: break-word;
             }
-            .divider { border-top: 1px dashed #000; margin: 4px 0; width: 100%; }
+            .divider { border-top: 1px dashed #000; margin: 3px 0; width: 100%; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
-            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; font-size: 10px; }
+            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; width: 100%; font-size: 7.5px; line-height: 1.3; }
             .items-table {
               width: 100%;
               border-collapse: collapse;
               table-layout: fixed;
-              font-size: 10px;
-              margin: 3px 0;
+              font-size: 7.5px;
+              margin: 2px 0;
             }
-            .items-table th { padding: 2px 0; font-size: 9.5px; }
+            .items-table th { padding: 2px 0; font-size: 7.5px; }
             .items-table td { padding: 2px 0; vertical-align: top; }
-            .spacer { height: 10px; }
+            .spacer { height: 8px; }
             .cut-line {
               border-top: 1px dashed #000;
-              margin: 10px 0;
+              margin: 8px 0;
               text-align: center;
               position: relative;
             }
@@ -407,79 +445,85 @@ export default function AdminDashboard() {
               background: #fff;
               padding: 0 4px;
               position: relative;
-              top: -7px;
-              font-size: 9px;
+              top: -6px;
+              font-size: 7.5px;
               font-weight: bold;
             }
           </style>
         </head>
         <body>
-          <!-- RECEIPT SECTION -->
-          <div class="text-center font-bold" style="font-size: 11.5px; line-height: 1.2;">SRI LANKAN FOOD ORADEA</div>
-          <div class="text-center" style="font-size: 9px; margin-top: 2px;">Hot, Spicy & Freshly Made</div>
-          <div class="text-center" style="font-size: 9px;">WhatsApp: +40 72 301 7320</div>
-          <div class="divider"></div>
-          <div><b>ORDER ID :</b> #${order.orderId}</div>
-          <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
-          <div><b>CUSTOMER :</b> ${order.customerName}</div>
-          <div><b>PHONE    :</b> ${order.customerPhone || 'N/A'}</div>
-          <div><b>ADDRESS  :</b> ${order.deliveryAddress}</div>
-          <div class="divider"></div>
-          <table class="items-table">
-            <thead>
-              <tr style="border-bottom: 1px dashed #000;">
-                <th style="text-align: left; width: 52%;">ITEM</th>
-                <th style="text-align: center; width: 16%;">QTY</th>
-                <th style="text-align: right; width: 32%;">PRICE</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${order.items.map((i: any) => `
-                <tr>
-                  <td style="text-align: left; word-break: break-word; padding-right: 2px;">${i.title}</td>
-                  <td style="text-align: center; font-weight: bold;">${i.quantity}</td>
-                  <td style="text-align: right; white-space: nowrap;">Lei ${i.price}</td>
+          <div class="receipt-container">
+            <!-- RECEIPT SECTION -->
+            <div class="text-center font-bold" style="font-size: 9.5px; line-height: 1.2;">SRI LANKAN FOOD ORADEA</div>
+            <div class="text-center" style="font-size: 7.5px; margin-top: 1px;">Hot, Spicy & Freshly Made</div>
+            <div class="text-center" style="font-size: 7.5px;">WhatsApp: +40 72 301 7320</div>
+            <div class="divider"></div>
+            <div style="font-size: 7.5px; line-height: 1.3;">
+              <div><b>ORDER ID :</b> #${order.orderId}</div>
+              <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
+              <div><b>CUSTOMER :</b> ${order.customerName}</div>
+              <div><b>PHONE    :</b> ${order.customerPhone || 'N/A'}</div>
+              <div><b>ADDRESS  :</b> ${order.deliveryAddress}</div>
+            </div>
+            <div class="divider"></div>
+            <table class="items-table">
+              <thead>
+                <tr style="border-bottom: 1px dashed #000;">
+                  <th style="text-align: left; width: 48%;">ITEM</th>
+                  <th style="text-align: center; width: 16%;">QTY</th>
+                  <th style="text-align: right; width: 36%;">PRICE</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          <div class="divider"></div>
-          <div class="flex-between"><span>SUBTOTAL</span><span>Lei ${order.subtotal}</span></div>
-          <div class="flex-between"><span>DELIVERY FEE</span><span>Lei ${order.deliveryFee}</span></div>
-          <div class="divider"></div>
-          <div class="flex-between font-bold" style="font-size: 11px;"><span>TOTAL DUE</span><span>Lei ${order.totalDue}</span></div>
-          <div style="margin-top: 3px;"><b>PAYMENT  :</b> ${order.paymentMethod}</div>
-          <div class="divider"></div>
-          <div class="text-center" style="font-size: 9.5px; margin-top: 4px;">Thank you for your order!</div>
+              </thead>
+              <tbody>
+                ${order.items.map((i: any) => `
+                  <tr>
+                    <td style="text-align: left; word-break: break-word; padding-right: 2px; font-weight: bold;">${i.title}</td>
+                    <td style="text-align: center; font-weight: bold; font-size: 8px;">${i.quantity}</td>
+                    <td style="text-align: right; white-space: nowrap; font-weight: bold;">Lei ${i.price}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div class="divider"></div>
+            <div class="flex-between"><span>SUBTOTAL</span><span>Lei ${order.subtotal}</span></div>
+            <div class="flex-between"><span>DELIVERY FEE</span><span>Lei ${order.deliveryFee}</span></div>
+            <div class="divider"></div>
+            <div class="flex-between font-bold" style="font-size: 9px;"><span>TOTAL DUE</span><span>Lei ${order.totalDue}</span></div>
+            <div style="margin-top: 2px; font-size: 7.5px;"><b>PAYMENT  :</b> ${order.paymentMethod}</div>
+            <div class="divider"></div>
+            <div class="text-center" style="font-size: 7.5px; margin-top: 3px;">Thank you for your order!</div>
 
-          <div class="spacer"></div>
-          <div class="cut-line"><span>✂️ CUT HERE ✂️</span></div>
-          <div class="spacer"></div>
+            <div class="spacer"></div>
+            <div class="cut-line"><span>✂️ CUT HERE ✂️</span></div>
+            <div class="spacer"></div>
 
-          <!-- KOT SECTION -->
-          <div class="text-center font-bold" style="font-size: 11.5px;">*** KITCHEN ORDER TICKET ***</div>
-          <div class="divider"></div>
-          <div><b>ORDER ID :</b> #${order.orderId}</div>
-          <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
-          <div class="divider"></div>
-          <table class="items-table">
-            <thead>
-              <tr style="border-bottom: 1px dashed #000;">
-                <th style="text-align: center; width: 22%;">QTY</th>
-                <th style="text-align: left; width: 78%;">ITEM</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${order.items.map((i: any) => `
-                <tr>
-                  <td style="text-align: center; font-size: 11px; font-weight: bold; padding-right: 3px;">${i.quantity}x</td>
-                  <td style="font-size: 10px; font-weight: bold; word-break: break-word;">${i.title}</td>
+            <!-- KOT SECTION -->
+            <div class="text-center font-bold" style="font-size: 9.5px;">*** KITCHEN ORDER TICKET ***</div>
+            <div class="divider"></div>
+            <div style="font-size: 7.5px; line-height: 1.3;">
+              <div><b>ORDER ID :</b> #${order.orderId}</div>
+              <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
+            </div>
+            <div class="divider"></div>
+            <table class="items-table">
+              <thead>
+                <tr style="border-bottom: 1px dashed #000;">
+                  <th style="text-align: center; width: 22%;">QTY</th>
+                  <th style="text-align: left; width: 78%;">ITEM</th>
                 </tr>
-              `).join('')}
-            </tbody>
-          </table>
-          <div class="divider"></div>
-          <div style="height: 15px;"></div>
+              </thead>
+              <tbody>
+                ${order.items.map((i: any) => `
+                  <tr>
+                    <td style="text-align: center; font-size: 8.5px; font-weight: bold; padding-right: 2px;">${i.quantity}x</td>
+                    <td style="font-size: 8px; font-weight: bold; word-break: break-word;">${i.title}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <div class="divider"></div>
+            <div style="height: 12px;"></div>
+          </div>
         </body>
       </html>
     `);
