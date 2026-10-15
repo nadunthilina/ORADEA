@@ -45,83 +45,190 @@ export default function App() {
   }, [isAuthenticated]);
 
   const printKOT = (order: any) => {
-    const printWindow = window.open('', '', 'width=300,height=600');
+    const printWindow = window.open('', '', 'width=350,height=600');
     if (!printWindow) return;
     
     printWindow.document.write(`
+      <!DOCTYPE html>
       <html>
         <head>
+          <meta charset="utf-8">
+          <title>KOT #${order.orderId}</title>
           <style>
-            body { font-family: monospace; width: 57mm; margin: 0; padding: 10px 0; font-size: 12px; }
-            .divider { border-top: 1px dashed #000; margin: 10px 0; }
+            @page {
+              size: 55mm auto;
+              margin: 0mm;
+            }
+            @media print {
+              html, body {
+                width: 55mm;
+                margin: 0;
+                padding: 0;
+              }
+            }
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+            }
+            body {
+              font-family: 'Courier New', Courier, monospace;
+              width: 55mm;
+              max-width: 55mm;
+              margin: 0 auto;
+              padding: 6px 3px 25px 3px;
+              font-size: 11px;
+              line-height: 1.25;
+              color: #000;
+              background: #fff;
+              word-break: break-word;
+            }
+            .divider { border-top: 1px dashed #000; margin: 6px 0; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
+            .items-table {
+              width: 100%;
+              border-collapse: collapse;
+              table-layout: fixed;
+              font-size: 11px;
+              margin: 4px 0;
+            }
+            .items-table th { padding: 3px 0; }
+            .items-table td { padding: 3px 0; vertical-align: top; }
           </style>
         </head>
         <body>
-          <div class="text-center font-bold">*** KITCHEN ORDER TICKET ***</div>
-          <div>ORDER ID: ${order.orderId}</div>
-          <div>DATE: ${new Date(order.createdAt).toLocaleString()}</div>
+          <div class="text-center font-bold" style="font-size: 13px;">*** KITCHEN ORDER TICKET ***</div>
           <div class="divider"></div>
-          <div>QTY   ITEM DESCRIPTION</div>
+          <div><b>ORDER ID :</b> #${order.orderId}</div>
+          <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
+          ${order.customerName ? `<div><b>CUSTOMER :</b> ${order.customerName}</div>` : ''}
           <div class="divider"></div>
-          ${order.items.map((i: any) => `
-            <div> ${i.quantity}x   ${i.title}</div>
-          `).join('')}
+          <table class="items-table">
+            <thead>
+              <tr style="border-bottom: 1px dashed #000;">
+                <th style="text-align: center; width: 24%;">QTY</th>
+                <th style="text-align: left; width: 76%;">ITEM</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.items.map((i: any) => `
+                <tr>
+                  <td style="text-align: center; font-size: 13px; font-weight: bold; padding-right: 4px;">${i.quantity}x</td>
+                  <td style="font-size: 12px; font-weight: bold; word-break: break-word;">${i.title}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
           <div class="divider"></div>
+          <div style="height: 15px;"></div>
         </body>
       </html>
     `);
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 300);
   };
 
   const printReceipt = (order: any) => {
-    const printWindow = window.open('', '', 'width=300,height=600');
+    const printWindow = window.open('', '', 'width=350,height=600');
     if (!printWindow) return;
     
     printWindow.document.write(`
+      <!DOCTYPE html>
       <html>
         <head>
+          <meta charset="utf-8">
+          <title>Receipt #${order.orderId}</title>
           <style>
-            body { font-family: monospace; width: 57mm; margin: 0; padding: 10px 0; font-size: 12px; }
-            .divider { border-top: 1px dashed #000; margin: 10px 0; }
+            @page {
+              size: 55mm auto;
+              margin: 0mm;
+            }
+            @media print {
+              html, body {
+                width: 55mm;
+                margin: 0;
+                padding: 0;
+              }
+            }
+            * {
+              box-sizing: border-box;
+              margin: 0;
+              padding: 0;
+            }
+            body {
+              font-family: 'Courier New', Courier, monospace;
+              width: 55mm;
+              max-width: 55mm;
+              margin: 0 auto;
+              padding: 6px 3px 25px 3px;
+              font-size: 10.5px;
+              line-height: 1.25;
+              color: #000;
+              background: #fff;
+              word-break: break-word;
+            }
+            .divider { border-top: 1px dashed #000; margin: 6px 0; }
             .text-center { text-align: center; }
             .font-bold { font-weight: bold; }
-            .flex-between { display: flex; justify-content: space-between; }
+            .flex-between { display: flex; justify-content: space-between; align-items: flex-start; }
+            .items-table {
+              width: 100%;
+              border-collapse: collapse;
+              table-layout: fixed;
+              font-size: 10.5px;
+              margin: 4px 0;
+            }
+            .items-table th { padding: 3px 0; }
+            .items-table td { padding: 3px 0; vertical-align: top; }
           </style>
         </head>
         <body>
-          <div class="text-center font-bold">KOTTU EXPRESS / ORADEA</div>
-          <div class="text-center">Hot, Spicy & Freshly Made</div>
-          <div class="text-center">WhatsApp: +40 72 301 7320</div>
+          <div class="text-center font-bold" style="font-size: 13px; line-height: 1.2;">KOTTU EXPRESS / ORADEA</div>
+          <div class="text-center" style="font-size: 9.5px; margin-top: 2px;">Hot, Spicy & Freshly Made</div>
+          <div class="text-center" style="font-size: 9.5px;">WhatsApp: +40 72 301 7320</div>
           <div class="divider"></div>
-          <div>ORDER ID : ${order.orderId}</div>
-          <div>DATE     : ${new Date(order.createdAt).toLocaleString()}</div>
-          <div>CUSTOMER : ${order.customerName}</div>
-          <div>PHONE    : ${order.customerPhone || 'N/A'}</div>
-          <div>ADDRESS  : ${order.deliveryAddress}</div>
+          <div><b>ORDER ID :</b> #${order.orderId}</div>
+          <div><b>DATE     :</b> ${new Date(order.createdAt).toLocaleString()}</div>
+          <div><b>CUSTOMER :</b> ${order.customerName}</div>
+          <div><b>PHONE    :</b> ${order.customerPhone || 'N/A'}</div>
+          <div><b>ADDRESS  :</b> ${order.deliveryAddress}</div>
           <div class="divider"></div>
-          <div class="flex-between"><span>ITEM</span><span>QTY</span><span>PRICE</span></div>
-          <div class="divider"></div>
-          ${order.items.map((i: any) => `
-            <div class="flex-between"><span>${i.title}</span><span>${i.quantity}</span><span>Lei ${i.price}</span></div>
-          `).join('')}
+          <table class="items-table">
+            <thead>
+              <tr style="border-bottom: 1px dashed #000;">
+                <th style="text-align: left; width: 52%;">ITEM</th>
+                <th style="text-align: center; width: 16%;">QTY</th>
+                <th style="text-align: right; width: 32%;">PRICE</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${order.items.map((i: any) => `
+                <tr>
+                  <td style="text-align: left; word-break: break-word; padding-right: 2px;">${i.title}</td>
+                  <td style="text-align: center; font-weight: bold;">${i.quantity}</td>
+                  <td style="text-align: right; white-space: nowrap;">Lei ${i.price}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
           <div class="divider"></div>
           <div class="flex-between"><span>SUBTOTAL</span><span>Lei ${order.subtotal}</span></div>
           <div class="flex-between"><span>DELIVERY FEE</span><span>Lei ${order.deliveryFee}</span></div>
           <div class="divider"></div>
-          <div class="flex-between font-bold"><span>TOTAL DUE</span><span>Lei ${order.totalDue}</span></div>
-          <div>PAYMENT  : ${order.paymentMethod}</div>
+          <div class="flex-between font-bold" style="font-size: 12px;"><span>TOTAL DUE</span><span>Lei ${order.totalDue}</span></div>
+          <div style="margin-top: 3px;"><b>PAYMENT  :</b> ${order.paymentMethod}</div>
           <div class="divider"></div>
-          <div class="text-center">Thank you for your order!</div>
+          <div class="text-center" style="font-size: 10px; margin-top: 4px;">Thank you for your order!</div>
+          <div class="text-center" style="font-size: 9px; margin-top: 2px;">*** HAVE A NICE DAY ***</div>
+          <div style="height: 15px;"></div>
         </body>
       </html>
     `);
     printWindow.document.close();
     printWindow.focus();
-    setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 300);
   };
 
   if (!isAuthenticated) {
