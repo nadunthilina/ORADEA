@@ -6,7 +6,7 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
   const [users, setUsers] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<'orders' | 'printed' | 'users' | 'menu'>('orders');
+  const [activeTab, setActiveTab] = useState<'orders' | 'printed' | 'analytics' | 'users' | 'menu'>('orders');
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [printedOrdersSet, setPrintedOrdersSet] = useState<Set<string>>(new Set());
@@ -14,6 +14,10 @@ export default function AdminDashboard() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+
+  // Analytics State
+  const [analyticsRange, setAnalyticsRange] = useState<'today' | 'yesterday' | '7days' | 'month' | 'all' | 'custom'>('today');
+  const [analyticsDate, setAnalyticsDate] = useState<string>(new Date().toISOString().slice(0, 10));
 
   // User Management State
   const [showUserModal, setShowUserModal] = useState(false);
@@ -600,6 +604,190 @@ export default function AdminDashboard() {
     setTimeout(() => { printWindow.print(); printWindow.close(); }, 350);
   };
 
+  // Analytics Calculations
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().slice(0, 10);
+  const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+  const analyticsOrders = orders.filter(order => {
+    if (!order.createdAt) return false;
+    const orderDate = new Date(order.createdAt);
+    const orderDateStr = orderDate.toISOString().slice(0, 10);
+
+    if (analyticsRange === 'today') {
+      return orderDateStr === todayStr;
+    }
+    if (analyticsRange === 'yesterday') {
+      return orderDateStr === yesterdayStr;
+    }
+    if (analyticsRange === 'custom') {
+      return orderDateStr === analyticsDate;
+    }
+    if (analyticsRange === '7days') {
+      return orderDate >= sevenDaysAgo && orderDate <= now;
+    }
+    if (analyticsRange === 'month') {
+      return orderDate.getFullYear() === now.getFullYear() && orderDate.getMonth() === now.getMonth();
+    }
+    if (analyticsRange === 'all') {
+      return true;
+    }
+    return true;
+  });
+
+  const totalRevenue = analyticsOrders.reduce((sum, o) => sum + (Number(o.totalDue) || 0), 0);
+  const totalSubtotal = analyticsOrders.reduce((sum, o) => sum + (Number(o.subtotal) || 0), 0);
+  const totalDeliveryFee = analyticsOrders.reduce((sum, o) => sum + (Number(o.deliveryFee) || 0), 0);
+  const totalOrdersCount = analyticsOrders.length;
+  const avgOrderValue = totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0;
+
+  const printedOrdersCount = analyticsOrders.filter(o => o.orderStatus === 'PRINTED' || printedOrdersSet.has(o._id)).length;
+  const newOrdersCount = totalOrdersCount - printedOrdersCount;
+
+  // Item sales map
+  const itemMap: Record<string, { title: string; count: number; revenue: number }> = {};
+  analyticsOrders.forEach(o => {
+    if (Array.isArray(o.items)) {
+      o.items.forEach((item: any) => {
+        const title = item.title || 'Unknown Item';
+        const qty = Number(item.quantity) || 1;
+        const price = Number(item.price) || 0;
+        if (!itemMap[title]) {
+          itemMap[title] = { title, count: 0, revenue: 0 };
+        }
+        itemMap[title].count += qty;
+        itemMap[title].revenue += price * qty;
+      });
+    }
+  });
+
+  const topSellingItems = Object.values(itemMap).sort((a, b) => b.count - a.count);
+  const totalItemsSold = topSellingItems.reduce((sum, i) => sum + i.count, 0);
+
+  // Payment breakdown
+  const cashOrders = analyticsOrders.filter(o => !o.paymentMethod || o.paymentMethod.toLowerCase().includes('cash'));
+  const cardOrders = analyticsOrders.filter(o => o.paymentMethod && !o.paymentMethod.toLowerCase().includes('cash'));
+  const cashRevenue = cashOrders.reduce((sum, o) => sum + (Number(o.totalDue) || 0), 0);
+  const cardRevenue = cardOrders.reduce((sum, o) => sum + (Number(o.totalDue) || 0), 0);
+  const cashPercentage = totalRevenue > 0 ? Math.round((cashRevenue / totalRevenue) * 100) : 0;
+  const cardPercentage = totalRevenue > 0 ? 100 - cashPercentage : 0;
+
+  // Latest active order date for shortcut jump
+  const latestOrderDate = orders[0]?.createdAt ? new Date(orders[0].createdAt).toISOString().slice(0, 10) : null;
+
+  // Chart data
+  const isSingleDay = analyticsRange === 'today' || analyticsRange === 'yesterday' || analyticsRange === 'custom';
+  let chartBars: { label: string; subLabel: string; revenue: number; count: number }[] = [];
+
+  if (isSingleDay) {
+    const hoursMap: Record<number, { revenue: number; count: number }> = {};
+    for (let h = 8; h <= 22; h += 2) {
+      hoursMap[h] = { revenue: 0, count: 0 };
+    }
+    analyticsOrders.forEach(o => {
+      const h = new Date(o.createdAt).getHours();
+      const bucket = Math.max(8, Math.min(22, Math.floor(h / 2) * 2));
+      if (hoursMap[bucket]) {
+        hoursMap[bucket].revenue += Number(o.totalDue) || 0;
+        hoursMap[bucket].count += 1;
+      }
+    });
+    chartBars = Object.entries(hoursMap).map(([hStr, data]) => {
+      const h = Number(hStr);
+      return {
+        label: `${h}:00`,
+        subLabel: `${h + 2}:00`,
+        revenue: data.revenue,
+        count: data.count,
+      };
+    });
+  } else {
+    const dayMap: Record<string, { revenue: number; count: number }> = {};
+    analyticsOrders.forEach(o => {
+      const d = new Date(o.createdAt).toISOString().slice(0, 10);
+      if (!dayMap[d]) {
+        dayMap[d] = { revenue: 0, count: 0 };
+      }
+      dayMap[d].revenue += Number(o.totalDue) || 0;
+      dayMap[d].count += 1;
+    });
+    chartBars = Object.entries(dayMap)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([dateStr, data]) => {
+        const d = new Date(dateStr);
+        return {
+          label: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }),
+          subLabel: d.toLocaleDateString(undefined, { weekday: 'narrow' }),
+          revenue: data.revenue,
+          count: data.count,
+        };
+      });
+  }
+
+  const maxRevenue = Math.max(...chartBars.map(b => b.revenue), 10);
+
+  const getRangeLabel = () => {
+    if (analyticsRange === 'today') return "Today's Sales (" + new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ")";
+    if (analyticsRange === 'yesterday') return "Yesterday's Sales (" + yesterday.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ")";
+    if (analyticsRange === 'custom') return "Sales for " + new Date(analyticsDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    if (analyticsRange === '7days') return "Last 7 Days";
+    if (analyticsRange === 'month') return "This Month (" + now.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) + ")";
+    return "All Time Sales";
+  };
+
+  const printDailyReport = () => {
+    const printWindow = window.open('', '', 'width=380,height=650');
+    if (!printWindow) return;
+
+    printWindow.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="utf-8">
+          <title>Daily Sales Report</title>
+          <style>
+            @page { size: 55mm auto; margin: 0; }
+            body { font-family: 'Courier New', monospace; font-size: 7.5px; padding: 2mm 1mm; line-height: 1.25; color: #000; margin: 0; }
+            .text-center { text-align: center; }
+            .font-bold { font-weight: bold; }
+            .divider { border-top: 1px dashed #000; margin: 3px 0; }
+            .flex-between { display: flex; justify-content: space-between; }
+          </style>
+        </head>
+        <body>
+          <div class="text-center font-bold" style="font-size: 9.5px;">SRI LANKAN FOOD ORADEA</div>
+          <div class="text-center font-bold">DAILY SALES CLOSING REPORT</div>
+          <div class="divider"></div>
+          <div><b>PERIOD :</b> ${analyticsRange.toUpperCase()} (${analyticsRange === 'custom' ? analyticsDate : (analyticsRange === 'today' ? new Date().toISOString().slice(0, 10) : analyticsRange)})</div>
+          <div><b>DATE   :</b> ${new Date().toLocaleString()}</div>
+          <div class="divider"></div>
+          <div class="flex-between"><span>TOTAL ORDERS:</span><b>${totalOrdersCount}</b></div>
+          <div class="flex-between"><span>ITEMS SOLD:</span><b>${totalItemsSold}</b></div>
+          <div class="flex-between"><span>SUBTOTAL:</span><b>Lei ${totalSubtotal.toFixed(2)}</b></div>
+          <div class="flex-between"><span>DELIVERY:</span><b>Lei ${totalDeliveryFee.toFixed(2)}</b></div>
+          <div class="divider"></div>
+          <div class="flex-between font-bold" style="font-size: 9px;"><span>TOTAL SALES:</span><span>Lei ${totalRevenue.toFixed(2)}</span></div>
+          <div class="divider"></div>
+          <div class="flex-between"><span>Cash on Delivery:</span><span>Lei ${cashRevenue.toFixed(2)} (${cashOrders.length})</span></div>
+          <div class="flex-between"><span>Card / Online:</span><span>Lei ${cardRevenue.toFixed(2)} (${cardOrders.length})</span></div>
+          <div class="divider"></div>
+          <div class="font-bold">TOP DISHES:</div>
+          ${topSellingItems.slice(0, 5).map(i => `
+            <div class="flex-between"><span>${i.count}x ${i.title}</span><span>Lei ${i.revenue.toFixed(2)}</span></div>
+          `).join('')}
+          <div class="divider"></div>
+          <div class="text-center">*** HAVE A NICE DAY ***</div>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    setTimeout(() => { printWindow.print(); printWindow.close(); }, 350);
+  };
+
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 font-sans absolute inset-0 z-50">
@@ -674,6 +862,12 @@ export default function AdminDashboard() {
             Printed
           </button>
           <button 
+            onClick={() => setActiveTab('analytics')}
+            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'analytics' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900'}`}
+          >
+            📊 Analytics
+          </button>
+          <button 
             onClick={() => setActiveTab('users')}
             className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'users' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900'}`}
           >
@@ -746,6 +940,364 @@ export default function AdminDashboard() {
                 </p>
               </div>
             )}
+          </div>
+        ) : activeTab === 'analytics' ? (
+          <div className="space-y-6">
+            {/* Header with Title and Actions */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-black text-gray-900 tracking-tight">Sales & Revenue Analytics</h2>
+                  <span className="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                    Live
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 font-medium mt-1">
+                  {getRangeLabel()} • Real-time order and daily revenue breakdown
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={printDailyReport}
+                  className="flex-1 sm:flex-none bg-gray-900 hover:bg-gray-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
+                  title="Print Daily Sales Closing Slip"
+                >
+                  <span>🖨️</span> Print Day Report
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Pills & Date Picker */}
+            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm space-y-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[
+                    { id: 'today', label: '⚡ Today (Day Sale)' },
+                    { id: 'yesterday', label: '⏪ Yesterday' },
+                    { id: '7days', label: '📅 Last 7 Days' },
+                    { id: 'month', label: '🗓️ This Month' },
+                    { id: 'all', label: '🌐 All Time' },
+                  ].map((btn) => (
+                    <button
+                      key={btn.id}
+                      onClick={() => setAnalyticsRange(btn.id as any)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                        analyticsRange === btn.id
+                          ? 'bg-green-600 text-white shadow-sm shadow-green-200'
+                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      }`}
+                    >
+                      {btn.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Specific Date Picker */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold text-gray-500">Pick Date:</span>
+                  <input
+                    type="date"
+                    value={analyticsDate}
+                    onChange={(e) => {
+                      setAnalyticsDate(e.target.value);
+                      setAnalyticsRange('custom');
+                    }}
+                    className={`border px-3 py-1.5 rounded-xl text-xs font-bold outline-none transition-all cursor-pointer ${
+                      analyticsRange === 'custom'
+                        ? 'border-green-600 ring-2 ring-green-100 bg-green-50/50 text-green-900'
+                        : 'border-gray-200 text-gray-700 bg-white hover:border-gray-300'
+                    }`}
+                  />
+                </div>
+              </div>
+
+              {/* Notice if selected period has 0 orders */}
+              {totalOrdersCount === 0 && (
+                <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                  <div className="text-amber-800 font-medium flex items-center gap-2">
+                    <span>ℹ️</span>
+                    <span>No orders recorded for this period yet.</span>
+                  </div>
+                  {latestOrderDate && (
+                    <button
+                      onClick={() => {
+                        setAnalyticsDate(latestOrderDate);
+                        setAnalyticsRange('custom');
+                      }}
+                      className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg shrink-0 cursor-pointer transition-colors"
+                    >
+                      📅 Jump to Latest Orders ({new Date(latestOrderDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })})
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* KPI Cards (4 Cards) */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              {/* Card 1: Total Revenue */}
+              <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Total Revenue</span>
+                  <span className="text-lg">💰</span>
+                </div>
+                <div className="text-2xl font-black text-green-600 tracking-tight">
+                  Lei {totalRevenue.toFixed(2)}
+                </div>
+                <div className="mt-2 text-[11px] text-gray-500 font-medium">
+                  Food: Lei {totalSubtotal.toFixed(2)} | Del: Lei {totalDeliveryFee.toFixed(2)}
+                </div>
+                <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-green-400 to-green-600"></div>
+              </div>
+
+              {/* Card 2: Total Orders */}
+              <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Total Orders</span>
+                  <span className="text-lg">🛍️</span>
+                </div>
+                <div className="text-2xl font-black text-gray-900 tracking-tight">
+                  {totalOrdersCount}
+                </div>
+                <div className="mt-2 text-[11px] text-gray-500 font-medium">
+                  {printedOrdersCount} Printed / {newOrdersCount} Pending
+                </div>
+                <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-blue-400 to-blue-600"></div>
+              </div>
+
+              {/* Card 3: Average Order Value */}
+              <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Avg Order Value</span>
+                  <span className="text-lg">🎯</span>
+                </div>
+                <div className="text-2xl font-black text-purple-600 tracking-tight">
+                  Lei {avgOrderValue.toFixed(2)}
+                </div>
+                <div className="mt-2 text-[11px] text-gray-500 font-medium">
+                  Avg spend per customer order
+                </div>
+                <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
+              </div>
+
+              {/* Card 4: Portions Sold */}
+              <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
+                <div className="flex justify-between items-start mb-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Dishes Sold</span>
+                  <span className="text-lg">🍲</span>
+                </div>
+                <div className="text-2xl font-black text-amber-600 tracking-tight">
+                  {totalItemsSold} <span className="text-sm font-bold text-gray-500">portions</span>
+                </div>
+                <div className="mt-2 text-[11px] text-gray-500 font-medium">
+                  Across {topSellingItems.length} menu items
+                </div>
+                <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-amber-400 to-amber-600"></div>
+              </div>
+            </div>
+
+            {/* Sales Trend Bar Chart */}
+            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h3 className="font-black text-base text-gray-900 tracking-tight">
+                    {isSingleDay ? "Hourly Sales Distribution" : "Daily Revenue Trend"}
+                  </h3>
+                  <p className="text-xs text-gray-400 font-medium mt-0.5">
+                    {isSingleDay ? "Sales spread across operating hours" : "Revenue by date"}
+                  </p>
+                </div>
+                <span className="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
+                  Max: Lei {maxRevenue.toFixed(0)}
+                </span>
+              </div>
+
+              {chartBars.length > 0 ? (
+                <div className="h-48 flex items-end gap-2 sm:gap-3 pt-6 pb-2 overflow-x-auto">
+                  {chartBars.map((bar, idx) => {
+                    const heightPercent = Math.max(8, Math.round((bar.revenue / maxRevenue) * 100));
+                    return (
+                      <div key={idx} className="flex-1 min-w-[38px] flex flex-col items-center h-full justify-end group">
+                        {/* Tooltip on hover / value */}
+                        <div className="text-[10px] font-bold text-gray-700 opacity-80 group-hover:opacity-100 group-hover:text-green-600 transition-colors mb-1 text-center whitespace-nowrap">
+                          {bar.revenue > 0 ? `Lei ${bar.revenue}` : '-'}
+                        </div>
+                        {/* Bar */}
+                        <div
+                          style={{ height: `${heightPercent}%` }}
+                          className={`w-full rounded-t-lg transition-all duration-300 relative ${
+                            bar.revenue > 0
+                              ? 'bg-gradient-to-t from-green-600 to-green-400 group-hover:from-green-500 group-hover:to-green-300 shadow-sm shadow-green-200'
+                              : 'bg-gray-100 group-hover:bg-gray-200'
+                          }`}
+                        >
+                          {bar.count > 0 && (
+                            <span className="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[9px] px-2 py-0.5 rounded shadow z-10 whitespace-nowrap">
+                              {bar.count} {bar.count === 1 ? 'order' : 'orders'}
+                            </span>
+                          )}
+                        </div>
+                        {/* Label */}
+                        <div className="mt-2 text-center">
+                          <div className="text-[10px] font-bold text-gray-700 truncate">{bar.label}</div>
+                          {bar.subLabel && <div className="text-[8px] text-gray-400 font-semibold">{bar.subLabel}</div>}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="h-32 flex items-center justify-center text-xs text-gray-400 font-medium">
+                  No sales recorded for this period.
+                </div>
+              )}
+            </div>
+
+            {/* Two Column Grid: Top Selling Items + Payment & Kitchen Breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Top Selling Items */}
+              <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="font-black text-base text-gray-900 tracking-tight">Top Selling Dishes</h3>
+                    <p className="text-xs text-gray-400 font-medium">Most ordered menu items</p>
+                  </div>
+                  <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
+                    {topSellingItems.length} items
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  {topSellingItems.slice(0, 6).map((item, idx) => {
+                    const medals = ['🥇', '🥈', '🥉'];
+                    const sharePercent = totalItemsSold > 0 ? Math.round((item.count / totalItemsSold) * 100) : 0;
+                    return (
+                      <div key={idx} className="p-3 bg-gray-50 hover:bg-gray-100/80 rounded-xl transition-all">
+                        <div className="flex justify-between items-center mb-1.5">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span className="text-sm shrink-0">{medals[idx] || `#${idx + 1}`}</span>
+                            <span className="font-bold text-sm text-gray-900 truncate">{item.title}</span>
+                          </div>
+                          <div className="text-right shrink-0">
+                            <span className="font-black text-sm text-green-600">Lei {item.revenue.toFixed(2)}</span>
+                            <span className="text-xs text-gray-500 ml-1.5 font-bold">({item.count}x)</span>
+                          </div>
+                        </div>
+                        {/* Progress Bar */}
+                        <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
+                          <div
+                            className="bg-green-600 h-full rounded-full"
+                            style={{ width: `${sharePercent}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {topSellingItems.length === 0 && (
+                    <div className="p-8 text-center text-xs text-gray-400 font-medium">
+                      No items sold in the selected period.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Payment & Order Status Breakdown */}
+              <div className="space-y-4">
+                {/* Payment Methods */}
+                <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                  <h3 className="font-black text-base text-gray-900 tracking-tight mb-1">Payment Breakdown</h3>
+                  <p className="text-xs text-gray-400 font-medium mb-4">Cash on Delivery vs Card/Online</p>
+
+                  <div className="space-y-3">
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-gray-700">💵 Cash on Delivery</span>
+                      <span className="text-gray-900">Lei {cashRevenue.toFixed(2)} ({cashPercentage}%)</span>
+                    </div>
+                    <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden flex">
+                      <div className="bg-green-500 h-full transition-all" style={{ width: `${cashPercentage}%` }}></div>
+                      <div className="bg-blue-500 h-full transition-all" style={{ width: `${cardPercentage}%` }}></div>
+                    </div>
+                    <div className="flex justify-between text-xs font-bold">
+                      <span className="text-gray-700">💳 Card / Online</span>
+                      <span className="text-gray-900">Lei {cardRevenue.toFixed(2)} ({cardPercentage}%)</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Fulfillment Status */}
+                <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+                  <h3 className="font-black text-base text-gray-900 tracking-tight mb-1">Kitchen Status</h3>
+                  <p className="text-xs text-gray-400 font-medium mb-4">Printed vs Pending Orders</p>
+
+                  <div className="grid grid-cols-2 gap-3 text-center">
+                    <div className="p-3 bg-green-50 border border-green-100 rounded-xl">
+                      <div className="text-xl font-black text-green-700">{printedOrdersCount}</div>
+                      <div className="text-[11px] font-bold text-green-800 uppercase mt-0.5">Printed / Ready</div>
+                    </div>
+                    <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl">
+                      <div className="text-xl font-black text-amber-700">{newOrdersCount}</div>
+                      <div className="text-[11px] font-bold text-amber-800 uppercase mt-0.5">New / Pending</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Orders Transaction Log for Selected Period */}
+            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
+              <div className="flex justify-between items-center mb-4">
+                <div>
+                  <h3 className="font-black text-base text-gray-900 tracking-tight">Period Orders Log</h3>
+                  <p className="text-xs text-gray-400 font-medium">
+                    {analyticsOrders.length} {analyticsOrders.length === 1 ? 'order' : 'orders'} recorded in this timeframe
+                  </p>
+                </div>
+              </div>
+
+              <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
+                {analyticsOrders.map((order) => (
+                  <div key={order._id} className="py-3 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-black text-sm text-gray-900">#{order.orderId}</span>
+                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                          order.orderStatus === 'PRINTED' || printedOrdersSet.has(order._id)
+                            ? 'bg-gray-100 text-gray-600'
+                            : 'bg-green-100 text-green-800'
+                        }`}>
+                          {order.orderStatus}
+                        </span>
+                        <span className="text-xs text-gray-400">
+                          {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      <div className="text-xs text-gray-600 mt-1 truncate">
+                        <span className="font-bold text-gray-800">{order.customerName}</span> •{' '}
+                        {order.items?.map((i: any) => `${i.quantity}x ${i.title}`).join(', ')}
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <span className="font-black text-base text-green-600">Lei {order.totalDue}</span>
+                      <button
+                        onClick={() => printReceipt(order)}
+                        className="bg-gray-100 hover:bg-gray-200 text-gray-800 p-2 rounded-lg text-xs font-bold transition-colors cursor-pointer"
+                        title="Print Receipt"
+                      >
+                        🧾
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                {analyticsOrders.length === 0 && (
+                  <div className="py-8 text-center text-xs text-gray-400 font-medium">
+                    No orders to display for this period.
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         ) : activeTab === 'users' ? (
           <div>
