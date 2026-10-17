@@ -1,8 +1,6 @@
 import { useEffect, useState } from 'react';
 import { 
   BarChart3, 
-  DollarSign, 
-  ShoppingBag, 
   Receipt, 
   Calendar, 
   Printer, 
@@ -978,23 +976,26 @@ export default function AdminDashboard() {
                   <div className="flex flex-col sm:flex-row gap-2">
                     <button 
                       onClick={() => printBoth(order)}
-                      className={`${isPrinted ? 'bg-gray-500' : 'bg-green-600'} hover:bg-green-700 text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors cursor-pointer`}
+                      className={`${isPrinted ? 'bg-gray-500' : 'bg-green-600'} hover:bg-green-700 text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors cursor-pointer flex items-center justify-center gap-1.5`}
                     >
-                      🖨️ Print Both (KOT + Receipt)
+                      <Printer size={15} />
+                      <span>Print Both (KOT + Receipt)</span>
                     </button>
                   </div>
                   <div className="flex flex-col sm:flex-row gap-2 mt-2">
                     <button 
                       onClick={() => printKOT(order)}
-                      className={`${isPrinted ? 'bg-gray-500' : 'bg-gray-900'} hover:bg-gray-800 text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors cursor-pointer`}
+                      className={`${isPrinted ? 'bg-gray-500' : 'bg-gray-900'} hover:bg-gray-800 text-white px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors cursor-pointer flex items-center justify-center gap-1.5`}
                     >
-                      🖨️ KOT (Kitchen)
+                      <Printer size={15} />
+                      <span>KOT (Kitchen)</span>
                     </button>
                     <button 
                       onClick={() => printReceipt(order)}
-                      className="bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors cursor-pointer"
+                      className="bg-white hover:bg-gray-50 text-gray-900 border-2 border-gray-200 px-4 py-3 rounded-xl text-xs font-bold flex-1 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
                     >
-                      🧾 Receipt (Delivery)
+                      <Receipt size={15} />
+                      <span>Receipt (Delivery)</span>
                     </button>
                   </div>
                 </div>
@@ -1010,189 +1011,131 @@ export default function AdminDashboard() {
           </div>
         ) : activeTab === 'analytics' ? (
           <div className="space-y-6">
-            {/* Top Control Bar: Header + Actions + Timeframe Selector */}
-            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-              {/* Header row */}
-              <div className="p-5 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100">
-                <div>
-                  <div className="flex items-center gap-2.5">
-                    <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Sales & Revenue Analytics</h2>
-                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live Sync
-                    </span>
-                  </div>
-                  <p className="text-xs md:text-sm text-slate-500 font-medium mt-1">
-                    {getRangeLabel()} • Real-time sales, order breakdown & daily revenue metrics
-                  </p>
-                </div>
-
-                <div className="flex items-center gap-2.5 w-full md:w-auto">
+            {/* Timeframe Selector & Date Filter Bar */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="text-xs font-bold text-slate-400 mr-1 hidden sm:inline">Timeframe:</span>
+                {[
+                  { id: 'today', label: 'Today' },
+                  { id: 'yesterday', label: 'Yesterday' },
+                  { id: '7days', label: 'Last 7 Days' },
+                  { id: 'month', label: 'This Month' },
+                  { id: 'all', label: 'All Time' },
+                ].map((btn) => (
                   <button
-                    onClick={printDailyReport}
-                    className="w-full md:w-auto bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
-                    title="Print Daily Sales Closing Slip"
+                    key={btn.id}
+                    onClick={() => setAnalyticsRange(btn.id as any)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      analyticsRange === btn.id
+                        ? 'bg-slate-900 text-white shadow-xs'
+                        : 'bg-slate-50 text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80'
+                    }`}
                   >
-                    <Printer size={15} />
-                    <span>Print Day Z-Report</span>
+                    {btn.label}
                   </button>
-                </div>
+                ))}
               </div>
 
-              {/* Timeframe Selector row */}
-              <div className="p-4 md:px-6 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-xs font-bold text-slate-400 mr-1 hidden sm:inline">Timeframe:</span>
-                  {[
-                    { id: 'today', label: 'Today' },
-                    { id: 'yesterday', label: 'Yesterday' },
-                    { id: '7days', label: 'Last 7 Days' },
-                    { id: 'month', label: 'This Month' },
-                    { id: 'all', label: 'All Time' },
-                  ].map((btn) => (
-                    <button
-                      key={btn.id}
-                      onClick={() => setAnalyticsRange(btn.id as any)}
-                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                        analyticsRange === btn.id
-                          ? 'bg-slate-900 text-white shadow-xs'
-                          : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80'
-                      }`}
-                    >
-                      {btn.label}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Specific Date Picker */}
-                <div className="flex items-center gap-2 self-start sm:self-auto">
-                  <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">Pick Date:</span>
-                  <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 shadow-xs">
-                    <Calendar size={13} className="text-slate-400" />
-                    <input
-                      type="date"
-                      value={analyticsDate}
-                      onChange={(e) => {
-                        setAnalyticsDate(e.target.value);
-                        setAnalyticsRange('custom');
-                      }}
-                      className="outline-none text-xs font-semibold text-slate-700 cursor-pointer bg-transparent"
-                    />
-                  </div>
+              {/* Specific Date Picker */}
+              <div className="flex items-center gap-2 self-start sm:self-auto">
+                <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">Pick Date:</span>
+                <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 shadow-xs">
+                  <Calendar size={13} className="text-slate-400" />
+                  <input
+                    type="date"
+                    value={analyticsDate}
+                    onChange={(e) => {
+                      setAnalyticsDate(e.target.value);
+                      setAnalyticsRange('custom');
+                    }}
+                    className="outline-none text-xs font-semibold text-slate-700 cursor-pointer bg-transparent"
+                  />
                 </div>
               </div>
-
-              {/* Notice if selected period has 0 orders */}
-              {totalOrdersCount === 0 && (
-                <div className="mx-4 md:mx-6 my-3 p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-                  <div className="text-amber-800 font-medium flex items-center gap-2">
-                    <AlertCircle size={16} className="text-amber-600 shrink-0" />
-                    <span>No orders recorded in this selected period.</span>
-                  </div>
-                  {latestOrderDate && (
-                    <button
-                      onClick={() => {
-                        setAnalyticsDate(latestOrderDate);
-                        setAnalyticsRange('custom');
-                      }}
-                      className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-3 py-1.5 rounded-lg shrink-0 cursor-pointer transition-colors flex items-center gap-1.5"
-                    >
-                      <Calendar size={13} />
-                      <span>View Latest Active Orders ({new Date(latestOrderDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })})</span>
-                    </button>
-                  )}
-                </div>
-              )}
             </div>
 
-            {/* 4 KPI Summary Cards - Spacious 2x2 Downward Stack (No Horizontal Squishing) */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Card 1: Total Revenue */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-4 hover:border-slate-300 transition-all">
-                <div className="min-w-0 flex-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Sales</span>
-                  <div className="mt-1 flex items-baseline gap-1.5 flex-wrap">
-                    <span className="text-sm font-bold text-slate-400 font-mono">Lei</span>
-                    <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
-                      {totalRevenue.toFixed(2)}
+            {/* Notice if selected period has 0 orders */}
+            {totalOrdersCount === 0 && (
+              <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div className="text-amber-800 font-medium flex items-center gap-2">
+                  <AlertCircle size={16} className="text-amber-600 shrink-0" />
+                  <span>No orders recorded for this period.</span>
+                </div>
+                {latestOrderDate && (
+                  <button
+                    onClick={() => {
+                      setAnalyticsDate(latestOrderDate);
+                      setAnalyticsRange('custom');
+                    }}
+                    className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-3 py-1.5 rounded-lg shrink-0 cursor-pointer transition-colors flex items-center gap-1.5"
+                  >
+                    <Calendar size={13} />
+                    <span>View Latest Active Orders ({new Date(latestOrderDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })})</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Executive Sales Overview Board - Quick Glance at Sales */}
+            <div className="bg-slate-900 text-white rounded-2xl p-5 sm:p-6 shadow-sm border border-slate-800">
+              <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 border-b border-slate-800/80 pb-5">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Net Sales</span>
+                    <span className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {getRangeLabel()}
                     </span>
                   </div>
-                  <div className="mt-2.5 text-xs text-slate-500 font-medium flex items-center gap-2 flex-wrap">
-                    <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-semibold">
+                  <div className="text-3xl sm:text-4xl font-black tracking-tight mt-1.5 flex items-baseline gap-2">
+                    <span className="text-sm sm:text-base font-bold text-emerald-400 font-mono">Lei</span>
+                    <span className="font-mono">{totalRevenue.toFixed(2)}</span>
+                  </div>
+                  <div className="text-xs text-slate-400 mt-2 flex items-center gap-2 flex-wrap">
+                    <span className="bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg text-xs font-medium">
                       Food: Lei {totalSubtotal.toFixed(0)}
                     </span>
-                    <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-semibold">
+                    <span className="bg-slate-800 text-slate-300 px-2.5 py-1 rounded-lg text-xs font-medium">
                       Delivery: Lei {totalDeliveryFee.toFixed(0)}
                     </span>
                   </div>
                 </div>
-                <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-xs">
-                  <DollarSign size={26} />
+
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <button
+                    onClick={printDailyReport}
+                    className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 shadow-xs transition-all cursor-pointer"
+                    title="Print Daily Sales Closing Slip"
+                  >
+                    <Printer size={15} />
+                    <span>Print Daily Z-Report</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Card 2: Total Orders */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-4 hover:border-slate-300 transition-all">
-                <div className="min-w-0 flex-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Orders</span>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
-                      {totalOrdersCount}
-                    </span>
-                    <span className="text-xs font-semibold text-slate-400">orders total</span>
-                  </div>
-                  <div className="mt-2.5 text-xs font-medium flex items-center gap-2 flex-wrap">
-                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2.5 py-1 rounded-lg text-xs font-semibold">
-                      {printedOrdersCount} Completed / Ready
-                    </span>
-                    <span className="bg-amber-50 text-amber-700 border border-amber-200/60 px-2.5 py-1 rounded-lg text-xs font-semibold">
-                      {newOrdersCount} Kitchen Pending
-                    </span>
-                  </div>
+              {/* 4 Clean Key Metrics */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 pt-5">
+                <div className="bg-slate-800/60 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-xs text-slate-400 font-semibold block">Total Orders</span>
+                  <div className="text-2xl font-black text-white mt-1 font-mono">{totalOrdersCount}</div>
+                  <div className="text-[11px] text-emerald-400 font-medium mt-1">{printedOrdersCount} Completed</div>
                 </div>
-                <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0 shadow-xs">
-                  <ShoppingBag size={26} />
-                </div>
-              </div>
 
-              {/* Card 3: Average Order Value */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-4 hover:border-slate-300 transition-all">
-                <div className="min-w-0 flex-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Average Order Value</span>
-                  <div className="mt-1 flex items-baseline gap-1.5 flex-wrap">
-                    <span className="text-sm font-bold text-slate-400 font-mono">Lei</span>
-                    <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
-                      {avgOrderValue.toFixed(2)}
-                    </span>
-                  </div>
-                  <div className="mt-2.5 text-xs text-slate-500 font-medium">
-                    <span className="bg-purple-50 text-purple-700 border border-purple-200/60 px-2.5 py-1 rounded-lg text-xs font-semibold">
-                      Average ticket across {totalOrdersCount} orders
-                    </span>
-                  </div>
+                <div className="bg-slate-800/60 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-xs text-slate-400 font-semibold block">Average Order</span>
+                  <div className="text-2xl font-black text-white mt-1 font-mono">Lei {avgOrderValue.toFixed(2)}</div>
+                  <div className="text-[11px] text-slate-400 font-medium mt-1">Per customer ticket</div>
                 </div>
-                <div className="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center shrink-0 shadow-xs">
-                  <Receipt size={26} />
-                </div>
-              </div>
 
-              {/* Card 4: Items Sold */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-4 hover:border-slate-300 transition-all">
-                <div className="min-w-0 flex-1">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Dishes & Portions Sold</span>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
-                      {totalItemsSold}
-                    </span>
-                    <span className="text-xs font-semibold text-slate-400">portions prepared</span>
-                  </div>
-                  <div className="mt-2.5 text-xs text-slate-500 font-medium">
-                    <span className="bg-amber-50 text-amber-700 border border-amber-200/60 px-2.5 py-1 rounded-lg text-xs font-semibold">
-                      Across {topSellingItems.length} active menu dishes
-                    </span>
-                  </div>
+                <div className="bg-slate-800/60 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-xs text-slate-400 font-semibold block">Dishes Sold</span>
+                  <div className="text-2xl font-black text-white mt-1 font-mono">{totalItemsSold}</div>
+                  <div className="text-[11px] text-slate-400 font-medium mt-1">Across {topSellingItems.length} dishes</div>
                 </div>
-                <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center shrink-0 shadow-xs">
-                  <Utensils size={26} />
+
+                <div className="bg-slate-800/60 p-3.5 rounded-xl border border-slate-800">
+                  <span className="text-xs text-slate-400 font-semibold block">Kitchen Status</span>
+                  <div className="text-2xl font-black text-amber-400 mt-1 font-mono">{newOrdersCount} Pending</div>
+                  <div className="text-[11px] text-slate-400 font-medium mt-1">Orders in preparation</div>
                 </div>
               </div>
             </div>
@@ -1664,7 +1607,7 @@ export default function AdminDashboard() {
                           onClick={generateRandomPassword}
                           className="text-[11px] font-bold text-green-700 hover:text-green-800 cursor-pointer"
                         >
-                          ⚡ Generate
+                          Generate Random
                         </button>
                       </div>
                       <div className="relative">
