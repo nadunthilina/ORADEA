@@ -1106,83 +1106,95 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            {/* 4 KPI Summary Cards - Spacious, Simple & Crystal Clear */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            {/* 4 KPI Summary Cards - Spacious 2x2 Downward Stack (No Horizontal Squishing) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Card 1: Total Revenue */}
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-500">Total Sales</span>
-                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
-                    <DollarSign size={16} />
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-4 hover:border-slate-300 transition-all">
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Sales</span>
+                  <div className="mt-1 flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-sm font-bold text-slate-400 font-mono">Lei</span>
+                    <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
+                      {totalRevenue.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="mt-2.5 text-xs text-slate-500 font-medium flex items-center gap-2 flex-wrap">
+                    <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-semibold">
+                      Food: Lei {totalSubtotal.toFixed(0)}
+                    </span>
+                    <span className="bg-slate-100 text-slate-700 px-2.5 py-1 rounded-lg text-xs font-semibold">
+                      Delivery: Lei {totalDeliveryFee.toFixed(0)}
+                    </span>
                   </div>
                 </div>
-                <div className="my-2.5">
-                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-baseline gap-1.5 flex-wrap">
-                    <span className="text-xs sm:text-sm font-bold text-slate-400">Lei</span>
-                    <span className="font-mono">{totalRevenue.toFixed(2)}</span>
-                  </div>
-                </div>
-                <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 flex-wrap">
-                  <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">Food: Lei {totalSubtotal.toFixed(0)}</span>
-                  <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">Delivery: Lei {totalDeliveryFee.toFixed(0)}</span>
+                <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-xs">
+                  <DollarSign size={26} />
                 </div>
               </div>
 
               {/* Card 2: Total Orders */}
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-500">Total Orders</span>
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
-                    <ShoppingBag size={16} />
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-4 hover:border-slate-300 transition-all">
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Orders</span>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
+                      {totalOrdersCount}
+                    </span>
+                    <span className="text-xs font-semibold text-slate-400">orders total</span>
+                  </div>
+                  <div className="mt-2.5 text-xs font-medium flex items-center gap-2 flex-wrap">
+                    <span className="bg-emerald-50 text-emerald-700 border border-emerald-200/60 px-2.5 py-1 rounded-lg text-xs font-semibold">
+                      {printedOrdersCount} Completed / Ready
+                    </span>
+                    <span className="bg-amber-50 text-amber-700 border border-amber-200/60 px-2.5 py-1 rounded-lg text-xs font-semibold">
+                      {newOrdersCount} Kitchen Pending
+                    </span>
                   </div>
                 </div>
-                <div className="my-2.5">
-                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-baseline gap-1.5">
-                    <span className="font-mono">{totalOrdersCount}</span>
-                    <span className="text-xs font-semibold text-slate-400">orders</span>
-                  </div>
-                </div>
-                <div className="text-[11px] font-medium flex items-center gap-1.5 flex-wrap">
-                  <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md">{printedOrdersCount} Completed</span>
-                  <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md">{newOrdersCount} Kitchen</span>
+                <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center shrink-0 shadow-xs">
+                  <ShoppingBag size={26} />
                 </div>
               </div>
 
               {/* Card 3: Average Order Value */}
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-500">Average Order</span>
-                  <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
-                    <Receipt size={16} />
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-4 hover:border-slate-300 transition-all">
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Average Order Value</span>
+                  <div className="mt-1 flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-sm font-bold text-slate-400 font-mono">Lei</span>
+                    <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
+                      {avgOrderValue.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="mt-2.5 text-xs text-slate-500 font-medium">
+                    <span className="bg-purple-50 text-purple-700 border border-purple-200/60 px-2.5 py-1 rounded-lg text-xs font-semibold">
+                      Average ticket across {totalOrdersCount} orders
+                    </span>
                   </div>
                 </div>
-                <div className="my-2.5">
-                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-baseline gap-1.5 flex-wrap">
-                    <span className="text-xs sm:text-sm font-bold text-slate-400">Lei</span>
-                    <span className="font-mono">{avgOrderValue.toFixed(2)}</span>
-                  </div>
-                </div>
-                <div className="text-[11px] text-slate-500 font-medium">
-                  Average spend per customer
+                <div className="w-14 h-14 rounded-2xl bg-purple-50 border border-purple-100 text-purple-600 flex items-center justify-center shrink-0 shadow-xs">
+                  <Receipt size={26} />
                 </div>
               </div>
 
               {/* Card 4: Items Sold */}
-              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-slate-500">Dishes Sold</span>
-                  <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-                    <Utensils size={16} />
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between gap-4 hover:border-slate-300 transition-all">
+                <div className="min-w-0 flex-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Dishes & Portions Sold</span>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight font-mono">
+                      {totalItemsSold}
+                    </span>
+                    <span className="text-xs font-semibold text-slate-400">portions prepared</span>
+                  </div>
+                  <div className="mt-2.5 text-xs text-slate-500 font-medium">
+                    <span className="bg-amber-50 text-amber-700 border border-amber-200/60 px-2.5 py-1 rounded-lg text-xs font-semibold">
+                      Across {topSellingItems.length} active menu dishes
+                    </span>
                   </div>
                 </div>
-                <div className="my-2.5">
-                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-baseline gap-1.5">
-                    <span className="font-mono">{totalItemsSold}</span>
-                    <span className="text-xs font-semibold text-slate-400">portions</span>
-                  </div>
-                </div>
-                <div className="text-[11px] text-slate-500 font-medium">
-                  Across {topSellingItems.length} menu items
+                <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-100 text-amber-600 flex items-center justify-center shrink-0 shadow-xs">
+                  <Utensils size={26} />
                 </div>
               </div>
             </div>
@@ -1375,29 +1387,35 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Detailed Orders Transaction Log */}
+            {/* Detailed Orders Transaction Log with Vertical Scrollbar */}
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
-              <div className="p-5 md:p-6 border-b border-slate-100 flex justify-between items-center">
+              <div className="p-5 md:p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between sm:items-center gap-3">
                 <div>
                   <h3 className="font-black text-base md:text-lg text-slate-900 tracking-tight">Period Transaction Log</h3>
                   <p className="text-xs text-slate-400 font-medium mt-0.5">
                     {analyticsOrders.length} {analyticsOrders.length === 1 ? 'order' : 'orders'} recorded in this timeframe
                   </p>
                 </div>
+                {analyticsOrders.length > 5 && (
+                  <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200/60 self-start sm:self-auto">
+                    Scroll down to view all {analyticsOrders.length} orders ↓
+                  </span>
+                )}
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50/80 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-100">
+              {/* Scrollable Container with max-height and visible scrollbar */}
+              <div className="overflow-x-auto overflow-y-auto max-h-[440px]">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead className="bg-slate-50 sticky top-0 z-10 text-slate-500 font-bold uppercase text-[10px] tracking-wider border-b border-slate-200 shadow-xs">
                     <tr>
-                      <th className="py-3 px-4">Order ID</th>
-                      <th className="py-3 px-4">Time</th>
-                      <th className="py-3 px-4">Customer</th>
-                      <th className="py-3 px-4">Items Summary</th>
-                      <th className="py-3 px-4">Payment</th>
-                      <th className="py-3 px-4 text-right">Total</th>
-                      <th className="py-3 px-4 text-center">Status</th>
-                      <th className="py-3 px-4 text-center">Receipt</th>
+                      <th className="py-3 px-4 bg-slate-50">Order ID</th>
+                      <th className="py-3 px-4 bg-slate-50">Time</th>
+                      <th className="py-3 px-4 bg-slate-50">Customer</th>
+                      <th className="py-3 px-4 bg-slate-50">Items Summary</th>
+                      <th className="py-3 px-4 bg-slate-50">Payment</th>
+                      <th className="py-3 px-4 bg-slate-50 text-right">Total</th>
+                      <th className="py-3 px-4 bg-slate-50 text-center">Status</th>
+                      <th className="py-3 px-4 bg-slate-50 text-center">Receipt</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 text-slate-700">
