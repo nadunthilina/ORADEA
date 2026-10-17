@@ -1,6 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { 
+  BarChart3, 
+  DollarSign, 
+  ShoppingBag, 
+  Receipt, 
+  Calendar, 
+  Printer, 
+  Clock, 
+  Utensils, 
+  CreditCard, 
+  Banknote, 
+  CheckCircle2, 
+  AlertCircle, 
+  Users, 
+  ChefHat, 
+  Bell 
+} from 'lucide-react';
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -832,52 +849,104 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-4 md:p-6 bg-gray-100 min-h-screen text-gray-900 font-sans pb-24">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-black mb-1 text-gray-900 tracking-tight">Sri Lankan Food Oradea POS</h1>
-            <p className="text-xs text-gray-500 font-medium">Mobile POS Dashboard</p>
+    <div className="p-4 md:p-8 bg-[#f8fafc] min-h-screen text-slate-900 font-sans pb-28">
+      <div className="max-w-6xl mx-auto space-y-6">
+        {/* Brand Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold shadow-xs">
+              <ChefHat size={22} className="text-amber-400" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg md:text-xl font-black text-slate-900 tracking-tight">Sri Lankan Food Oradea</h1>
+                <span className="bg-slate-100 text-slate-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider border border-slate-200">
+                  POS Admin
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 font-medium">Order Dispatch, Sales Reports & Operations</p>
+            </div>
           </div>
-          <button 
-            onClick={() => { localStorage.removeItem('adminAuth'); setIsAuthenticated(false); }}
-            className="text-xs font-bold text-red-500 hover:text-red-600 bg-red-50 px-3 py-2 rounded-xl"
-          >
-            Log Out
-          </button>
+
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+            <span className="text-xs text-slate-500 hidden md:inline font-medium">admin@kottu.com</span>
+            <button 
+              onClick={() => { localStorage.removeItem('adminAuth'); setIsAuthenticated(false); }}
+              className="text-xs font-bold text-red-600 hover:text-red-700 bg-red-50 hover:bg-red-100 px-3.5 py-2 rounded-xl transition-colors cursor-pointer"
+            >
+              Log Out
+            </button>
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-2 mb-6 bg-white p-1 rounded-xl shadow-sm border border-gray-200">
+        {/* Tab Navigation */}
+        <div className="bg-slate-200/60 p-1.5 rounded-2xl flex gap-1.5 overflow-x-auto shadow-inner border border-slate-200">
           <button 
             onClick={() => setActiveTab('orders')}
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'orders' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900'}`}
+            className={`flex-1 min-w-[120px] py-2.5 px-3 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${
+              activeTab === 'orders' 
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            }`}
           >
-            New Orders
+            <Bell size={16} className={activeTab === 'orders' ? 'text-amber-500' : 'text-slate-400'} />
+            <span>New Orders</span>
+            {orders.filter(o => o.orderStatus !== 'PRINTED' && !printedOrdersSet.has(o._id)).length > 0 && (
+              <span className="bg-amber-500 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full animate-pulse">
+                {orders.filter(o => o.orderStatus !== 'PRINTED' && !printedOrdersSet.has(o._id)).length}
+              </span>
+            )}
           </button>
+
           <button 
             onClick={() => setActiveTab('printed')}
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'printed' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900'}`}
+            className={`flex-1 min-w-[120px] py-2.5 px-3 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${
+              activeTab === 'printed' 
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            }`}
           >
-            Printed
+            <Printer size={16} className={activeTab === 'printed' ? 'text-blue-500' : 'text-slate-400'} />
+            <span>Printed</span>
           </button>
+
           <button 
             onClick={() => setActiveTab('analytics')}
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'analytics' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900'}`}
+            className={`flex-1 min-w-[120px] py-2.5 px-3 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${
+              activeTab === 'analytics' 
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            }`}
           >
-            📊 Analytics
+            <BarChart3 size={16} className={activeTab === 'analytics' ? 'text-emerald-500' : 'text-slate-400'} />
+            <span>Sales Analytics</span>
           </button>
+
           <button 
             onClick={() => setActiveTab('users')}
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'users' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900'}`}
+            className={`flex-1 min-w-[120px] py-2.5 px-3 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${
+              activeTab === 'users' 
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            }`}
           >
-            Users
+            <Users size={16} className={activeTab === 'users' ? 'text-indigo-500' : 'text-slate-400'} />
+            <span>Users</span>
+            <span className="bg-slate-100 text-slate-600 text-[10px] font-bold px-1.5 py-0.2 rounded-full border border-slate-200">
+              {users.length}
+            </span>
           </button>
+
           <button 
             onClick={() => setActiveTab('menu')}
-            className={`flex-1 py-2 text-sm font-bold rounded-lg transition-colors ${activeTab === 'menu' ? 'bg-gray-900 text-white' : 'text-gray-500 hover:text-gray-900'}`}
+            className={`flex-1 min-w-[120px] py-2.5 px-3 text-xs md:text-sm font-bold rounded-xl transition-all flex items-center justify-center gap-2 whitespace-nowrap cursor-pointer ${
+              activeTab === 'menu' 
+                ? 'bg-white text-slate-900 shadow-sm border border-slate-200/60' 
+                : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+            }`}
           >
-            Menu
+            <Utensils size={16} className={activeTab === 'menu' ? 'text-orange-500' : 'text-slate-400'} />
+            <span>Menu</span>
           </button>
         </div>
         
@@ -943,49 +1012,52 @@ export default function AdminDashboard() {
           </div>
         ) : activeTab === 'analytics' ? (
           <div className="space-y-6">
-            {/* Header with Title and Actions */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-              <div>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-xl font-black text-gray-900 tracking-tight">Sales & Revenue Analytics</h2>
-                  <span className="bg-green-100 text-green-800 text-xs font-bold px-2.5 py-0.5 rounded-full">
-                    Live
-                  </span>
+            {/* Top Control Bar: Header + Actions + Timeframe Selector */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+              {/* Header row */}
+              <div className="p-5 md:p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-100">
+                <div>
+                  <div className="flex items-center gap-2.5">
+                    <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Sales & Revenue Analytics</h2>
+                    <span className="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Live Sync
+                    </span>
+                  </div>
+                  <p className="text-xs md:text-sm text-slate-500 font-medium mt-1">
+                    {getRangeLabel()} • Real-time sales, order breakdown & daily revenue metrics
+                  </p>
                 </div>
-                <p className="text-xs text-gray-500 font-medium mt-1">
-                  {getRangeLabel()} • Real-time order and daily revenue breakdown
-                </p>
+
+                <div className="flex items-center gap-2.5 w-full md:w-auto">
+                  <button
+                    onClick={printDailyReport}
+                    className="w-full md:w-auto bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-semibold flex items-center justify-center gap-2 shadow-xs transition-all cursor-pointer active:scale-98"
+                    title="Print Daily Sales Closing Slip"
+                  >
+                    <Printer size={15} />
+                    <span>Print Day Z-Report</span>
+                  </button>
+                </div>
               </div>
 
-              <div className="flex items-center gap-2 w-full sm:w-auto">
-                <button
-                  onClick={printDailyReport}
-                  className="flex-1 sm:flex-none bg-gray-900 hover:bg-gray-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-all cursor-pointer"
-                  title="Print Daily Sales Closing Slip"
-                >
-                  <span>🖨️</span> Print Day Report
-                </button>
-              </div>
-            </div>
-
-            {/* Filter Pills & Date Picker */}
-            <div className="bg-white p-4 rounded-2xl border border-gray-200 shadow-sm space-y-3">
-              <div className="flex flex-wrap items-center justify-between gap-3">
+              {/* Timeframe Selector row */}
+              <div className="p-4 md:px-6 bg-slate-50/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-1.5">
+                  <span className="text-xs font-bold text-slate-400 mr-1 hidden sm:inline">Timeframe:</span>
                   {[
-                    { id: 'today', label: '⚡ Today (Day Sale)' },
-                    { id: 'yesterday', label: '⏪ Yesterday' },
-                    { id: '7days', label: '📅 Last 7 Days' },
-                    { id: 'month', label: '🗓️ This Month' },
-                    { id: 'all', label: '🌐 All Time' },
+                    { id: 'today', label: 'Today' },
+                    { id: 'yesterday', label: 'Yesterday' },
+                    { id: '7days', label: 'Last 7 Days' },
+                    { id: 'month', label: 'This Month' },
+                    { id: 'all', label: 'All Time' },
                   ].map((btn) => (
                     <button
                       key={btn.id}
                       onClick={() => setAnalyticsRange(btn.id as any)}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
                         analyticsRange === btn.id
-                          ? 'bg-green-600 text-white shadow-sm shadow-green-200'
-                          : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200/80'
                       }`}
                     >
                       {btn.label}
@@ -994,30 +1066,29 @@ export default function AdminDashboard() {
                 </div>
 
                 {/* Specific Date Picker */}
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-bold text-gray-500">Pick Date:</span>
-                  <input
-                    type="date"
-                    value={analyticsDate}
-                    onChange={(e) => {
-                      setAnalyticsDate(e.target.value);
-                      setAnalyticsRange('custom');
-                    }}
-                    className={`border px-3 py-1.5 rounded-xl text-xs font-bold outline-none transition-all cursor-pointer ${
-                      analyticsRange === 'custom'
-                        ? 'border-green-600 ring-2 ring-green-100 bg-green-50/50 text-green-900'
-                        : 'border-gray-200 text-gray-700 bg-white hover:border-gray-300'
-                    }`}
-                  />
+                <div className="flex items-center gap-2 self-start sm:self-auto">
+                  <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">Pick Date:</span>
+                  <div className="flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 shadow-xs">
+                    <Calendar size={13} className="text-slate-400" />
+                    <input
+                      type="date"
+                      value={analyticsDate}
+                      onChange={(e) => {
+                        setAnalyticsDate(e.target.value);
+                        setAnalyticsRange('custom');
+                      }}
+                      className="outline-none text-xs font-semibold text-slate-700 cursor-pointer bg-transparent"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Notice if selected period has 0 orders */}
               {totalOrdersCount === 0 && (
-                <div className="bg-amber-50 border border-amber-200 p-3 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                <div className="mx-4 md:mx-6 my-3 p-3.5 bg-amber-50/80 border border-amber-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                   <div className="text-amber-800 font-medium flex items-center gap-2">
-                    <span>ℹ️</span>
-                    <span>No orders recorded for this period yet.</span>
+                    <AlertCircle size={16} className="text-amber-600 shrink-0" />
+                    <span>No orders recorded in this selected period.</span>
                   </div>
                   {latestOrderDate && (
                     <button
@@ -1025,277 +1096,367 @@ export default function AdminDashboard() {
                         setAnalyticsDate(latestOrderDate);
                         setAnalyticsRange('custom');
                       }}
-                      className="bg-amber-600 hover:bg-amber-700 text-white font-bold px-3 py-1.5 rounded-lg shrink-0 cursor-pointer transition-colors"
+                      className="bg-amber-600 hover:bg-amber-700 text-white font-semibold px-3 py-1.5 rounded-lg shrink-0 cursor-pointer transition-colors flex items-center gap-1.5"
                     >
-                      📅 Jump to Latest Orders ({new Date(latestOrderDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })})
+                      <Calendar size={13} />
+                      <span>View Latest Active Orders ({new Date(latestOrderDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })})</span>
                     </button>
                   )}
                 </div>
               )}
             </div>
 
-            {/* KPI Cards (4 Cards) */}
+            {/* 4 KPI Summary Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Card 1: Total Revenue */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Total Revenue</span>
-                  <span className="text-lg">💰</span>
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between h-36 relative overflow-hidden group">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Gross Sales</span>
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                    <DollarSign size={16} />
+                  </div>
                 </div>
-                <div className="text-2xl font-black text-green-600 tracking-tight">
-                  Lei {totalRevenue.toFixed(2)}
+                <div>
+                  <div className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight tabular-nums">
+                    <span className="text-sm font-bold text-emerald-600 mr-1 font-mono">Lei</span>
+                    {totalRevenue.toFixed(2)}
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-medium mt-1 truncate">
+                    Food: Lei {totalSubtotal.toFixed(2)} • Delivery: Lei {totalDeliveryFee.toFixed(2)}
+                  </div>
                 </div>
-                <div className="mt-2 text-[11px] text-gray-500 font-medium">
-                  Food: Lei {totalSubtotal.toFixed(2)} | Del: Lei {totalDeliveryFee.toFixed(2)}
-                </div>
-                <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-green-400 to-green-600"></div>
+                <div className="absolute bottom-0 left-0 h-1 w-full bg-emerald-500 opacity-80"></div>
               </div>
 
               {/* Card 2: Total Orders */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Total Orders</span>
-                  <span className="text-lg">🛍️</span>
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between h-36 relative overflow-hidden group">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Order Volume</span>
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                    <ShoppingBag size={16} />
+                  </div>
                 </div>
-                <div className="text-2xl font-black text-gray-900 tracking-tight">
-                  {totalOrdersCount}
+                <div>
+                  <div className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight tabular-nums">
+                    {totalOrdersCount}
+                    <span className="text-xs font-semibold text-slate-400 ml-1.5 font-sans">orders</span>
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-medium mt-1 truncate">
+                    {printedOrdersCount} Ready/Printed • {newOrdersCount} Kitchen Pending
+                  </div>
                 </div>
-                <div className="mt-2 text-[11px] text-gray-500 font-medium">
-                  {printedOrdersCount} Printed / {newOrdersCount} Pending
-                </div>
-                <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-blue-400 to-blue-600"></div>
+                <div className="absolute bottom-0 left-0 h-1 w-full bg-blue-500 opacity-80"></div>
               </div>
 
               {/* Card 3: Average Order Value */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Avg Order Value</span>
-                  <span className="text-lg">🎯</span>
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between h-36 relative overflow-hidden group">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Average Ticket</span>
+                  <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+                    <Receipt size={16} />
+                  </div>
                 </div>
-                <div className="text-2xl font-black text-purple-600 tracking-tight">
-                  Lei {avgOrderValue.toFixed(2)}
+                <div>
+                  <div className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight tabular-nums">
+                    <span className="text-sm font-bold text-purple-600 mr-1 font-mono">Lei</span>
+                    {avgOrderValue.toFixed(2)}
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-medium mt-1 truncate">
+                    Average revenue per customer order
+                  </div>
                 </div>
-                <div className="mt-2 text-[11px] text-gray-500 font-medium">
-                  Avg spend per customer order
-                </div>
-                <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-purple-400 to-purple-600"></div>
+                <div className="absolute bottom-0 left-0 h-1 w-full bg-purple-500 opacity-80"></div>
               </div>
 
               {/* Card 4: Portions Sold */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden">
-                <div className="flex justify-between items-start mb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-gray-400">Dishes Sold</span>
-                  <span className="text-lg">🍲</span>
+              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between h-36 relative overflow-hidden group">
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Dishes Prepared</span>
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                    <Utensils size={16} />
+                  </div>
                 </div>
-                <div className="text-2xl font-black text-amber-600 tracking-tight">
-                  {totalItemsSold} <span className="text-sm font-bold text-gray-500">portions</span>
+                <div>
+                  <div className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight tabular-nums">
+                    {totalItemsSold}
+                    <span className="text-xs font-semibold text-slate-400 ml-1.5 font-sans">portions</span>
+                  </div>
+                  <div className="text-[11px] text-slate-400 font-medium mt-1 truncate">
+                    Across {topSellingItems.length} active menu dishes
+                  </div>
                 </div>
-                <div className="mt-2 text-[11px] text-gray-500 font-medium">
-                  Across {topSellingItems.length} menu items
-                </div>
-                <div className="absolute top-0 right-0 h-1 w-full bg-gradient-to-r from-amber-400 to-amber-600"></div>
+                <div className="absolute bottom-0 left-0 h-1 w-full bg-amber-500 opacity-80"></div>
               </div>
             </div>
 
             {/* Sales Trend Bar Chart */}
-            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-              <div className="flex justify-between items-center mb-6">
+            <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-6">
                 <div>
-                  <h3 className="font-black text-base text-gray-900 tracking-tight">
-                    {isSingleDay ? "Hourly Sales Distribution" : "Daily Revenue Trend"}
+                  <h3 className="font-black text-base md:text-lg text-slate-900 tracking-tight">
+                    {isSingleDay ? "Hourly Revenue Trajectory" : "Daily Revenue History"}
                   </h3>
-                  <p className="text-xs text-gray-400 font-medium mt-0.5">
-                    {isSingleDay ? "Sales spread across operating hours" : "Revenue by date"}
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">
+                    {isSingleDay ? "Hourly sales volume throughout operating hours" : "Sales performance comparison over time"}
                   </p>
                 </div>
-                <span className="text-xs font-bold bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
-                  Max: Lei {maxRevenue.toFixed(0)}
+                <span className="text-xs font-bold bg-slate-100 text-slate-700 px-3 py-1 rounded-full shrink-0">
+                  Peak: Lei {maxRevenue.toFixed(0)}
                 </span>
               </div>
 
               {chartBars.length > 0 ? (
-                <div className="h-48 flex items-end gap-2 sm:gap-3 pt-6 pb-2 overflow-x-auto">
-                  {chartBars.map((bar, idx) => {
-                    const heightPercent = Math.max(8, Math.round((bar.revenue / maxRevenue) * 100));
-                    return (
-                      <div key={idx} className="flex-1 min-w-[38px] flex flex-col items-center h-full justify-end group">
-                        {/* Tooltip on hover / value */}
-                        <div className="text-[10px] font-bold text-gray-700 opacity-80 group-hover:opacity-100 group-hover:text-green-600 transition-colors mb-1 text-center whitespace-nowrap">
-                          {bar.revenue > 0 ? `Lei ${bar.revenue}` : '-'}
+                <div className="relative pt-6">
+                  {/* Reference line */}
+                  <div className="absolute top-6 left-0 right-0 border-b border-dashed border-slate-200"></div>
+
+                  <div className="h-52 flex items-end justify-between gap-2 sm:gap-4 overflow-x-auto pb-1 px-1">
+                    {chartBars.map((bar, idx) => {
+                      const heightPercent = Math.max(6, Math.round((bar.revenue / maxRevenue) * 100));
+                      return (
+                        <div key={idx} className="flex-1 min-w-[36px] max-w-[64px] flex flex-col items-center h-full justify-end group">
+                          {/* Value on hover or top */}
+                          <div className="text-[10px] font-bold text-slate-600 group-hover:text-emerald-600 transition-colors mb-1.5 text-center whitespace-nowrap">
+                            {bar.revenue > 0 ? `Lei ${bar.revenue}` : ''}
+                          </div>
+
+                          {/* Bar */}
+                          <div className="w-full bg-slate-100 rounded-t-xl h-full flex items-end overflow-hidden">
+                            <div
+                              style={{ height: `${heightPercent}%` }}
+                              className={`w-full rounded-t-xl transition-all duration-300 relative ${
+                                bar.revenue > 0
+                                  ? 'bg-gradient-to-t from-emerald-600 to-emerald-400 group-hover:from-emerald-500 group-hover:to-emerald-300'
+                                  : 'bg-transparent'
+                              }`}
+                            >
+                              {bar.count > 0 && (
+                                <span className="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[9px] px-2 py-0.5 rounded shadow z-20 whitespace-nowrap">
+                                  {bar.count} {bar.count === 1 ? 'order' : 'orders'}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Label */}
+                          <div className="mt-2 text-center w-full">
+                            <div className="text-[10px] font-bold text-slate-700 truncate">{bar.label}</div>
+                            {bar.subLabel && <div className="text-[9px] text-slate-400 font-medium truncate">{bar.subLabel}</div>}
+                          </div>
                         </div>
-                        {/* Bar */}
-                        <div
-                          style={{ height: `${heightPercent}%` }}
-                          className={`w-full rounded-t-lg transition-all duration-300 relative ${
-                            bar.revenue > 0
-                              ? 'bg-gradient-to-t from-green-600 to-green-400 group-hover:from-green-500 group-hover:to-green-300 shadow-sm shadow-green-200'
-                              : 'bg-gray-100 group-hover:bg-gray-200'
-                          }`}
-                        >
-                          {bar.count > 0 && (
-                            <span className="hidden group-hover:block absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[9px] px-2 py-0.5 rounded shadow z-10 whitespace-nowrap">
-                              {bar.count} {bar.count === 1 ? 'order' : 'orders'}
-                            </span>
-                          )}
-                        </div>
-                        {/* Label */}
-                        <div className="mt-2 text-center">
-                          <div className="text-[10px] font-bold text-gray-700 truncate">{bar.label}</div>
-                          {bar.subLabel && <div className="text-[8px] text-gray-400 font-semibold">{bar.subLabel}</div>}
-                        </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })}
+                  </div>
+                  {/* Baseline */}
+                  <div className="border-t border-slate-200 w-full mt-1"></div>
                 </div>
               ) : (
-                <div className="h-32 flex items-center justify-center text-xs text-gray-400 font-medium">
-                  No sales recorded for this period.
+                <div className="h-40 flex items-center justify-center text-xs text-slate-400 font-medium">
+                  No sales recorded for this timeframe.
                 </div>
               )}
             </div>
 
-            {/* Two Column Grid: Top Selling Items + Payment & Kitchen Breakdown */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {/* Two Column Grid: Top Selling Dishes + Payment & Kitchen Breakdown */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Top Selling Items */}
-              <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <h3 className="font-black text-base text-gray-900 tracking-tight">Top Selling Dishes</h3>
-                    <p className="text-xs text-gray-400 font-medium">Most ordered menu items</p>
-                  </div>
-                  <span className="text-xs font-bold text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
-                    {topSellingItems.length} items
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  {topSellingItems.slice(0, 6).map((item, idx) => {
-                    const medals = ['🥇', '🥈', '🥉'];
-                    const sharePercent = totalItemsSold > 0 ? Math.round((item.count / totalItemsSold) * 100) : 0;
-                    return (
-                      <div key={idx} className="p-3 bg-gray-50 hover:bg-gray-100/80 rounded-xl transition-all">
-                        <div className="flex justify-between items-center mb-1.5">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-sm shrink-0">{medals[idx] || `#${idx + 1}`}</span>
-                            <span className="font-bold text-sm text-gray-900 truncate">{item.title}</span>
-                          </div>
-                          <div className="text-right shrink-0">
-                            <span className="font-black text-sm text-green-600">Lei {item.revenue.toFixed(2)}</span>
-                            <span className="text-xs text-gray-500 ml-1.5 font-bold">({item.count}x)</span>
-                          </div>
-                        </div>
-                        {/* Progress Bar */}
-                        <div className="w-full bg-gray-200 h-1.5 rounded-full overflow-hidden">
-                          <div
-                            className="bg-green-600 h-full rounded-full"
-                            style={{ width: `${sharePercent}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                  {topSellingItems.length === 0 && (
-                    <div className="p-8 text-center text-xs text-gray-400 font-medium">
-                      No items sold in the selected period.
+              <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-center mb-5">
+                    <div>
+                      <h3 className="font-black text-base md:text-lg text-slate-900 tracking-tight">Top Performing Dishes</h3>
+                      <p className="text-xs text-slate-400 font-medium mt-0.5">Most ordered menu items ranked by popularity</p>
                     </div>
-                  )}
+                    <span className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-full">
+                      {topSellingItems.length} items
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {topSellingItems.slice(0, 5).map((item, idx) => {
+                      const sharePercent = totalItemsSold > 0 ? Math.round((item.count / totalItemsSold) * 100) : 0;
+                      return (
+                        <div key={idx} className="p-3 bg-slate-50/80 hover:bg-slate-100 rounded-xl transition-all border border-slate-100">
+                          <div className="flex justify-between items-center mb-1.5">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span className="w-5 h-5 rounded-full bg-slate-200/80 text-slate-700 font-bold text-[10px] flex items-center justify-center shrink-0">
+                                {idx + 1}
+                              </span>
+                              <span className="font-bold text-sm text-slate-900 truncate">{item.title}</span>
+                            </div>
+                            <div className="text-right shrink-0">
+                              <span className="font-black text-sm text-emerald-600">Lei {item.revenue.toFixed(2)}</span>
+                              <span className="text-xs text-slate-400 font-medium ml-1.5">({item.count} sold)</span>
+                            </div>
+                          </div>
+                          {/* Progress Bar */}
+                          <div className="w-full bg-slate-200/80 h-1.5 rounded-full overflow-hidden">
+                            <div
+                              className="bg-emerald-600 h-full rounded-full transition-all duration-300"
+                              style={{ width: `${sharePercent}%` }}
+                            ></div>
+                          </div>
+                        </div>
+                      );
+                    })}
+
+                    {topSellingItems.length === 0 && (
+                      <div className="py-12 text-center text-xs text-slate-400 font-medium">
+                        No dishes sold in the selected period.
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
               {/* Payment & Order Status Breakdown */}
-              <div className="space-y-4">
-                {/* Payment Methods */}
-                <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-                  <h3 className="font-black text-base text-gray-900 tracking-tight mb-1">Payment Breakdown</h3>
-                  <p className="text-xs text-gray-400 font-medium mb-4">Cash on Delivery vs Card/Online</p>
+              <div className="space-y-6 flex flex-col justify-between">
+                {/* Payment Methods Card */}
+                <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                  <h3 className="font-black text-base md:text-lg text-slate-900 tracking-tight mb-1">Payment Method Distribution</h3>
+                  <p className="text-xs text-slate-400 font-medium mb-5">Cash on Delivery vs Digital / Card settlement</p>
 
-                  <div className="space-y-3">
-                    <div className="flex justify-between text-xs font-bold">
-                      <span className="text-gray-700">💵 Cash on Delivery</span>
-                      <span className="text-gray-900">Lei {cashRevenue.toFixed(2)} ({cashPercentage}%)</span>
-                    </div>
-                    <div className="w-full bg-gray-100 h-2.5 rounded-full overflow-hidden flex">
-                      <div className="bg-green-500 h-full transition-all" style={{ width: `${cashPercentage}%` }}></div>
+                  <div className="space-y-4">
+                    <div className="w-full bg-slate-100 h-3 rounded-full overflow-hidden flex">
+                      <div className="bg-emerald-500 h-full transition-all" style={{ width: `${cashPercentage}%` }}></div>
                       <div className="bg-blue-500 h-full transition-all" style={{ width: `${cardPercentage}%` }}></div>
                     </div>
-                    <div className="flex justify-between text-xs font-bold">
-                      <span className="text-gray-700">💳 Card / Online</span>
-                      <span className="text-gray-900">Lei {cardRevenue.toFixed(2)} ({cardPercentage}%)</span>
+
+                    <div className="grid grid-cols-2 gap-3 pt-1">
+                      <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                          <Banknote size={14} className="text-emerald-500" />
+                          <span>Cash on Delivery</span>
+                        </div>
+                        <div className="text-base font-black text-slate-900 mt-1">
+                          Lei {cashRevenue.toFixed(2)}
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-medium mt-0.5">
+                          {cashOrders.length} orders ({cashPercentage}%)
+                        </div>
+                      </div>
+
+                      <div className="p-3 bg-slate-50/80 rounded-xl border border-slate-100">
+                        <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600">
+                          <CreditCard size={14} className="text-blue-500" />
+                          <span>Card / Online</span>
+                        </div>
+                        <div className="text-base font-black text-slate-900 mt-1">
+                          Lei {cardRevenue.toFixed(2)}
+                        </div>
+                        <div className="text-[11px] text-slate-400 font-medium mt-0.5">
+                          {cardOrders.length} orders ({cardPercentage}%)
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Fulfillment Status */}
-                <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-                  <h3 className="font-black text-base text-gray-900 tracking-tight mb-1">Kitchen Status</h3>
-                  <p className="text-xs text-gray-400 font-medium mb-4">Printed vs Pending Orders</p>
+                {/* Fulfillment Status Card */}
+                <div className="bg-white p-5 md:p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                  <h3 className="font-black text-base md:text-lg text-slate-900 tracking-tight mb-1">Kitchen Operational Status</h3>
+                  <p className="text-xs text-slate-400 font-medium mb-4">Preparation status for selected period</p>
 
                   <div className="grid grid-cols-2 gap-3 text-center">
-                    <div className="p-3 bg-green-50 border border-green-100 rounded-xl">
-                      <div className="text-xl font-black text-green-700">{printedOrdersCount}</div>
-                      <div className="text-[11px] font-bold text-green-800 uppercase mt-0.5">Printed / Ready</div>
+                    <div className="p-4 bg-emerald-50/80 border border-emerald-200/80 rounded-xl">
+                      <div className="flex justify-center mb-1 text-emerald-600">
+                        <CheckCircle2 size={18} />
+                      </div>
+                      <div className="text-2xl font-black text-emerald-700">{printedOrdersCount}</div>
+                      <div className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider mt-0.5">Dispatched / Ready</div>
                     </div>
-                    <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl">
-                      <div className="text-xl font-black text-amber-700">{newOrdersCount}</div>
-                      <div className="text-[11px] font-bold text-amber-800 uppercase mt-0.5">New / Pending</div>
+                    <div className="p-4 bg-amber-50/80 border border-amber-200/80 rounded-xl">
+                      <div className="flex justify-center mb-1 text-amber-600">
+                        <Clock size={18} />
+                      </div>
+                      <div className="text-2xl font-black text-amber-700">{newOrdersCount}</div>
+                      <div className="text-[11px] font-bold text-amber-800 uppercase tracking-wider mt-0.5">Kitchen Pending</div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Orders Transaction Log for Selected Period */}
-            <div className="bg-white p-5 rounded-2xl border border-gray-200 shadow-sm">
-              <div className="flex justify-between items-center mb-4">
+            {/* Detailed Orders Transaction Log */}
+            <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+              <div className="p-5 md:p-6 border-b border-slate-100 flex justify-between items-center">
                 <div>
-                  <h3 className="font-black text-base text-gray-900 tracking-tight">Period Orders Log</h3>
-                  <p className="text-xs text-gray-400 font-medium">
+                  <h3 className="font-black text-base md:text-lg text-slate-900 tracking-tight">Period Transaction Log</h3>
+                  <p className="text-xs text-slate-400 font-medium mt-0.5">
                     {analyticsOrders.length} {analyticsOrders.length === 1 ? 'order' : 'orders'} recorded in this timeframe
                   </p>
                 </div>
               </div>
 
-              <div className="divide-y divide-gray-100 max-h-96 overflow-y-auto">
-                {analyticsOrders.map((order) => (
-                  <div key={order._id} className="py-3 flex flex-col sm:flex-row justify-between sm:items-center gap-2">
-                    <div className="min-w-0">
-                      <div className="flex items-center gap-2">
-                        <span className="font-black text-sm text-gray-900">#{order.orderId}</span>
-                        <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full uppercase ${
-                          order.orderStatus === 'PRINTED' || printedOrdersSet.has(order._id)
-                            ? 'bg-gray-100 text-gray-600'
-                            : 'bg-green-100 text-green-800'
-                        }`}>
-                          {order.orderStatus}
-                        </span>
-                        <span className="text-xs text-gray-400">
-                          {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      <div className="text-xs text-gray-600 mt-1 truncate">
-                        <span className="font-bold text-gray-800">{order.customerName}</span> •{' '}
-                        {order.items?.map((i: any) => `${i.quantity}x ${i.title}`).join(', ')}
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-3 shrink-0">
-                      <span className="font-black text-base text-green-600">Lei {order.totalDue}</span>
-                      <button
-                        onClick={() => printReceipt(order)}
-                        className="bg-gray-100 hover:bg-gray-200 text-gray-800 p-2 rounded-lg text-xs font-bold transition-colors cursor-pointer"
-                        title="Print Receipt"
-                      >
-                        🧾
-                      </button>
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50/80 text-slate-400 font-bold uppercase text-[10px] tracking-wider border-b border-slate-100">
+                    <tr>
+                      <th className="py-3 px-4">Order ID</th>
+                      <th className="py-3 px-4">Time</th>
+                      <th className="py-3 px-4">Customer</th>
+                      <th className="py-3 px-4">Items Summary</th>
+                      <th className="py-3 px-4">Payment</th>
+                      <th className="py-3 px-4 text-right">Total</th>
+                      <th className="py-3 px-4 text-center">Status</th>
+                      <th className="py-3 px-4 text-center">Receipt</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 text-slate-700">
+                    {analyticsOrders.map((order) => {
+                      const isPrinted = order.orderStatus === 'PRINTED' || printedOrdersSet.has(order._id);
+                      return (
+                        <tr key={order._id} className="hover:bg-slate-50/60 transition-colors">
+                          <td className="py-3.5 px-4 font-black font-mono text-slate-900 whitespace-nowrap">
+                            #{order.orderId}
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-500 whitespace-nowrap">
+                            {new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </td>
+                          <td className="py-3.5 px-4 font-bold text-slate-900 whitespace-nowrap">
+                            {order.customerName || 'Guest'}
+                          </td>
+                          <td className="py-3.5 px-4 max-w-xs truncate text-slate-600">
+                            {order.items?.map((i: any) => `${i.quantity}x ${i.title}`).join(', ')}
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-600 whitespace-nowrap">
+                            {order.paymentMethod || 'Cash on Delivery'}
+                          </td>
+                          <td className="py-3.5 px-4 text-right font-black text-emerald-600 whitespace-nowrap text-sm">
+                            Lei {order.totalDue}
+                          </td>
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                            <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
+                              isPrinted
+                                ? 'bg-slate-100 text-slate-600'
+                                : 'bg-emerald-100 text-emerald-800'
+                            }`}>
+                              {order.orderStatus}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-center whitespace-nowrap">
+                            <button
+                              onClick={() => printReceipt(order)}
+                              className="bg-slate-100 hover:bg-slate-200 text-slate-800 p-1.5 px-2.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1 mx-auto"
+                              title="Print Customer Receipt"
+                            >
+                              <Printer size={12} />
+                              <span>Receipt</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
 
-                {analyticsOrders.length === 0 && (
-                  <div className="py-8 text-center text-xs text-gray-400 font-medium">
-                    No orders to display for this period.
-                  </div>
-                )}
+                    {analyticsOrders.length === 0 && (
+                      <tr>
+                        <td colSpan={8} className="py-12 text-center text-xs text-slate-400 font-medium">
+                          No transactions found for this period.
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
