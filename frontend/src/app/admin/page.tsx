@@ -15,6 +15,14 @@ export default function AdminDashboard() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
+  // User Management State
+  const [showUserModal, setShowUserModal] = useState(false);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [newUserForm, setNewUserForm] = useState({ fullName: '', email: '', mobile: '', address: '', password: '' });
+  const [userFormError, setUserFormError] = useState('');
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
   useEffect(() => {
     const isAuth = localStorage.getItem('adminAuth');
     if (isAuth === 'true') {
@@ -55,18 +63,77 @@ export default function AdminDashboard() {
 
   useEffect(() => {
     if (isAuthenticated && activeTab === 'users') {
-      fetch('/api/users')
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            setUsers(data.users);
-          }
-        })
-        .catch(err => console.error(err));
+      fetchUsers();
     } else if (isAuthenticated && activeTab === 'menu') {
       fetchProducts();
     }
   }, [isAuthenticated, activeTab]);
+
+  const fetchUsers = () => {
+    fetch('/api/users')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setUsers(data.users);
+        }
+      })
+      .catch(err => console.error(err));
+  };
+
+  const handleCreateUser = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setUserFormError('');
+    setIsCreatingUser(true);
+
+    try {
+      const res = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newUserForm),
+      });
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        setUserFormError(data.error || 'Failed to create user');
+        setIsCreatingUser(false);
+        return;
+      }
+
+      setShowUserModal(false);
+      setNewUserForm({ fullName: '', email: '', mobile: '', address: '', password: '' });
+      fetchUsers();
+    } catch (err: any) {
+      setUserFormError(err.message || 'Error creating user');
+    } finally {
+      setIsCreatingUser(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId: string, userName: string) => {
+    if (!confirm(`Are you sure you want to delete user "${userName}"?`)) return;
+    try {
+      const res = await fetch(`/api/users/${userId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setUsers(prev => prev.filter(u => (u._id || u.id) !== userId));
+      } else {
+        alert(data.error || 'Failed to delete user');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting user');
+    }
+  };
+
+  const generateRandomPassword = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%';
+    let pwd = '';
+    for (let i = 0; i < 10; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setNewUserForm(prev => ({ ...prev, password: pwd }));
+    setShowPassword(true);
+  };
 
   const fetchProducts = () => {
     fetch('/api/products')
@@ -681,19 +748,235 @@ export default function AdminDashboard() {
             )}
           </div>
         ) : activeTab === 'users' ? (
-          <div className="grid gap-4">
-            {users.map(user => (
-              <div key={user._id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200">
-                <h3 className="font-black text-lg text-gray-900 mb-1">{user.fullName}</h3>
-                <p className="text-sm text-gray-600 mb-1"><span className="font-bold">Email:</span> {user.email}</p>
-                <p className="text-sm text-gray-600 mb-1"><span className="font-bold">Mobile:</span> {user.mobile}</p>
-                <p className="text-sm text-gray-600 mb-2"><span className="font-bold">Address:</span> {user.address}</p>
-                <p className="text-xs text-gray-400 font-medium">Joined: {new Date(user.createdAt || Date.now()).toLocaleDateString()}</p>
+          <div>
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-6">
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-gray-900">User Management</h2>
+                  <span className="bg-gray-200 text-gray-700 text-xs font-bold px-2.5 py-0.5 rounded-full">
+                    {users.length} Users
+                  </span>
+                </div>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">Manage customer accounts and add new users</p>
               </div>
-            ))}
-            {users.length === 0 && (
-              <div className="bg-white p-8 text-center rounded-2xl border border-dashed border-gray-300">
-                <p className="text-gray-500 text-sm font-medium">No users registered yet.</p>
+              <button 
+                onClick={() => {
+                  setUserFormError('');
+                  setNewUserForm({ fullName: '', email: '', mobile: '', address: '', password: '' });
+                  setShowPassword(false);
+                  setShowUserModal(true);
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-sm transition-colors cursor-pointer"
+              >
+                <span>+</span> Add New User
+              </button>
+            </div>
+
+            {/* Search Filter */}
+            <div className="mb-4">
+              <input
+                type="text"
+                placeholder="Search users by name, email, or mobile..."
+                value={userSearchTerm}
+                onChange={(e) => setUserSearchTerm(e.target.value)}
+                className="w-full bg-white border border-gray-200 px-4 py-2.5 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 focus:border-transparent transition-all"
+              />
+            </div>
+
+            {/* Users List */}
+            <div className="grid gap-3">
+              {users
+                .filter(u => {
+                  if (!userSearchTerm) return true;
+                  const term = userSearchTerm.toLowerCase();
+                  return (
+                    (u.fullName && u.fullName.toLowerCase().includes(term)) ||
+                    (u.email && u.email.toLowerCase().includes(term)) ||
+                    (u.mobile && u.mobile.toLowerCase().includes(term))
+                  );
+                })
+                .map(user => {
+                  const initial = (user.fullName || 'U').charAt(0).toUpperCase();
+                  return (
+                    <div key={user._id || user.id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 hover:border-gray-300 transition-all">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-800 font-bold flex items-center justify-center shrink-0 text-base">
+                            {initial}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <h3 className="font-bold text-base text-gray-900 truncate">{user.fullName}</h3>
+                              <span className="bg-green-50 text-green-700 border border-green-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">Customer</span>
+                            </div>
+                            
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1 mt-2 text-xs text-gray-600">
+                              <div className="flex items-center gap-1.5 truncate">
+                                <span className="text-gray-400">📧</span>
+                                <a href={`mailto:${user.email}`} className="truncate hover:underline text-gray-700">{user.email}</a>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="text-gray-400">📱</span>
+                                <a href={`tel:${user.mobile}`} className="hover:underline text-gray-700">{user.mobile}</a>
+                              </div>
+                              <div className="flex items-center gap-1.5 sm:col-span-2">
+                                <span className="text-gray-400">📍</span>
+                                <span className="truncate">{user.address}</span>
+                              </div>
+                            </div>
+                            
+                            <p className="text-[11px] text-gray-400 mt-2 font-medium">
+                              Joined: {new Date(user.createdAt || Date.now()).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                            </p>
+                          </div>
+                        </div>
+
+                        <button
+                          onClick={() => handleDeleteUser(user._id || user.id, user.fullName)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2 rounded-lg text-xs font-bold transition-colors cursor-pointer shrink-0"
+                          title="Delete User"
+                        >
+                          🗑️ Delete
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+              {users.filter(u => {
+                if (!userSearchTerm) return true;
+                const term = userSearchTerm.toLowerCase();
+                return (
+                  (u.fullName && u.fullName.toLowerCase().includes(term)) ||
+                  (u.email && u.email.toLowerCase().includes(term)) ||
+                  (u.mobile && u.mobile.toLowerCase().includes(term))
+                );
+              }).length === 0 && (
+                <div className="bg-white p-8 text-center rounded-2xl border border-dashed border-gray-300">
+                  <p className="text-gray-500 text-sm font-medium">
+                    {userSearchTerm ? 'No users matching your search.' : 'No users registered yet. Click "+ Add New User" to create one!'}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Add User Modal */}
+            {showUserModal && (
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-100 max-h-[90vh] overflow-y-auto">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-black text-gray-900 tracking-tight">Add New User</h2>
+                    <button 
+                      onClick={() => setShowUserModal(false)}
+                      className="text-gray-400 hover:text-gray-600 text-2xl leading-none font-bold p-1 cursor-pointer"
+                    >
+                      &times;
+                    </button>
+                  </div>
+
+                  {userFormError && (
+                    <div className="mb-4 bg-red-50 border border-red-200 text-red-600 px-3 py-2 rounded-xl text-xs font-bold">
+                      {userFormError}
+                    </div>
+                  )}
+
+                  <form onSubmit={handleCreateUser} className="space-y-3.5">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Full Name</label>
+                      <input 
+                        type="text" 
+                        required
+                        value={newUserForm.fullName}
+                        onChange={(e) => setNewUserForm({ ...newUserForm, fullName: e.target.value })}
+                        className="w-full border border-gray-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none transition-all"
+                        placeholder="John Doe"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Email Address</label>
+                      <input 
+                        type="email" 
+                        required
+                        value={newUserForm.email}
+                        onChange={(e) => setNewUserForm({ ...newUserForm, email: e.target.value })}
+                        className="w-full border border-gray-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none transition-all"
+                        placeholder="customer@example.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Mobile Phone Number</label>
+                      <input 
+                        type="tel" 
+                        required
+                        value={newUserForm.mobile}
+                        onChange={(e) => setNewUserForm({ ...newUserForm, mobile: e.target.value })}
+                        className="w-full border border-gray-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none transition-all"
+                        placeholder="+40 72 301 7320"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Delivery / Street Address</label>
+                      <textarea 
+                        rows={2}
+                        required
+                        value={newUserForm.address}
+                        onChange={(e) => setNewUserForm({ ...newUserForm, address: e.target.value })}
+                        className="w-full border border-gray-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none transition-all resize-none"
+                        placeholder="Strada Republicii 12, Oradea"
+                      />
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between items-center mb-1">
+                        <label className="block text-xs font-bold text-gray-700">Password</label>
+                        <button
+                          type="button"
+                          onClick={generateRandomPassword}
+                          className="text-[11px] font-bold text-green-700 hover:text-green-800 cursor-pointer"
+                        >
+                          ⚡ Generate
+                        </button>
+                      </div>
+                      <div className="relative">
+                        <input 
+                          type={showPassword ? "text" : "password"}
+                          required
+                          value={newUserForm.password}
+                          onChange={(e) => setNewUserForm({ ...newUserForm, password: e.target.value })}
+                          className="w-full border border-gray-300 p-2.5 pr-14 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none transition-all"
+                          placeholder="••••••••"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-500 hover:text-gray-800 cursor-pointer px-1 py-0.5"
+                        >
+                          {showPassword ? "Hide" : "Show"}
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2 pt-3">
+                      <button 
+                        type="button" 
+                        onClick={() => setShowUserModal(false)}
+                        className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="submit" 
+                        disabled={isCreatingUser}
+                        className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white rounded-xl font-bold text-sm shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+                      >
+                        {isCreatingUser ? 'Creating...' : 'Create User'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             )}
           </div>

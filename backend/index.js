@@ -153,13 +153,55 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
+// Add User Route (For Admin)
+app.post('/api/users', async (req, res) => {
+  try {
+    const { fullName, email, mobile, address, password } = req.body;
+    
+    if (!fullName || !email || !mobile || !address || !password) {
+      return res.status(400).json({ success: false, error: 'All fields (Name, Email, Mobile, Address, Password) are required' });
+    }
+
+    // Check if user exists
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, error: 'User with this email already exists' });
+    }
+
+    const newUser = new User({ fullName, email, mobile, address, password });
+    await newUser.save();
+
+    res.status(201).json({ 
+      success: true, 
+      user: { 
+        id: newUser._id, 
+        _id: newUser._id, 
+        fullName: newUser.fullName, 
+        email: newUser.email, 
+        mobile: newUser.mobile, 
+        address: newUser.address,
+        createdAt: newUser.createdAt
+      } 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
+  }
+});
+
 // Update User Route
 app.put('/api/users/:id', async (req, res) => {
   try {
-    const { address, mobile } = req.body;
+    const { fullName, address, mobile, password } = req.body;
+    const updateData = {};
+    if (fullName) updateData.fullName = fullName;
+    if (address) updateData.address = address;
+    if (mobile) updateData.mobile = mobile;
+    if (password) updateData.password = password;
+
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id, 
-      { address, mobile }, 
+      updateData, 
       { new: true }
     ).select('-password');
     
@@ -167,7 +209,32 @@ app.put('/api/users/:id', async (req, res) => {
       return res.status(404).json({ success: false, error: 'User not found' });
     }
     
-    res.status(200).json({ success: true, user: { id: updatedUser._id, fullName: updatedUser.fullName, email: updatedUser.email, mobile: updatedUser.mobile, address: updatedUser.address } });
+    res.status(200).json({ 
+      success: true, 
+      user: { 
+        id: updatedUser._id, 
+        _id: updatedUser._id, 
+        fullName: updatedUser.fullName, 
+        email: updatedUser.email, 
+        mobile: updatedUser.mobile, 
+        address: updatedUser.address,
+        createdAt: updatedUser.createdAt
+      } 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// Delete User Route (For Admin)
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.id);
+    if (!deletedUser) {
+      return res.status(404).json({ success: false, error: 'User not found' });
+    }
+    res.status(200).json({ success: true, message: 'User deleted successfully' });
   } catch (error) {
     console.error(error);
     res.status(500).json({ success: false, error: 'Server error' });
