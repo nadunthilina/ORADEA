@@ -1104,86 +1104,84 @@ export default function AdminDashboard() {
               )}
             </div>
 
-            {/* 4 KPI Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* 4 KPI Summary Cards - Spacious, Simple & Crystal Clear */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               {/* Card 1: Total Revenue */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between h-36 relative overflow-hidden group">
-                <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Total Gross Sales</span>
-                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-500">Total Sales</span>
+                  <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                     <DollarSign size={16} />
                   </div>
                 </div>
-                <div>
-                  <div className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight tabular-nums">
-                    <span className="text-sm font-bold text-emerald-600 mr-1 font-mono">Lei</span>
-                    {totalRevenue.toFixed(2)}
-                  </div>
-                  <div className="text-[11px] text-slate-400 font-medium mt-1 truncate">
-                    Food: Lei {totalSubtotal.toFixed(2)} • Delivery: Lei {totalDeliveryFee.toFixed(2)}
+                <div className="my-2.5">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-xs sm:text-sm font-bold text-slate-400">Lei</span>
+                    <span className="font-mono">{totalRevenue.toFixed(2)}</span>
                   </div>
                 </div>
-                <div className="absolute bottom-0 left-0 h-1 w-full bg-emerald-500 opacity-80"></div>
+                <div className="text-[11px] text-slate-500 font-medium flex items-center gap-1.5 flex-wrap">
+                  <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">Food: Lei {totalSubtotal.toFixed(0)}</span>
+                  <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">Delivery: Lei {totalDeliveryFee.toFixed(0)}</span>
+                </div>
               </div>
 
               {/* Card 2: Total Orders */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between h-36 relative overflow-hidden group">
-                <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Order Volume</span>
-                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-500">Total Orders</span>
+                  <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                     <ShoppingBag size={16} />
                   </div>
                 </div>
-                <div>
-                  <div className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight tabular-nums">
-                    {totalOrdersCount}
-                    <span className="text-xs font-semibold text-slate-400 ml-1.5 font-sans">orders</span>
-                  </div>
-                  <div className="text-[11px] text-slate-400 font-medium mt-1 truncate">
-                    {printedOrdersCount} Ready/Printed • {newOrdersCount} Kitchen Pending
+                <div className="my-2.5">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-baseline gap-1.5">
+                    <span className="font-mono">{totalOrdersCount}</span>
+                    <span className="text-xs font-semibold text-slate-400">orders</span>
                   </div>
                 </div>
-                <div className="absolute bottom-0 left-0 h-1 w-full bg-blue-500 opacity-80"></div>
+                <div className="text-[11px] font-medium flex items-center gap-1.5 flex-wrap">
+                  <span className="bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-md">{printedOrdersCount} Completed</span>
+                  <span className="bg-amber-50 text-amber-700 px-2 py-0.5 rounded-md">{newOrdersCount} Kitchen</span>
+                </div>
               </div>
 
               {/* Card 3: Average Order Value */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between h-36 relative overflow-hidden group">
-                <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Average Ticket</span>
-                  <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold">
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-500">Average Order</span>
+                  <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
                     <Receipt size={16} />
                   </div>
                 </div>
-                <div>
-                  <div className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight tabular-nums">
-                    <span className="text-sm font-bold text-purple-600 mr-1 font-mono">Lei</span>
-                    {avgOrderValue.toFixed(2)}
-                  </div>
-                  <div className="text-[11px] text-slate-400 font-medium mt-1 truncate">
-                    Average revenue per customer order
+                <div className="my-2.5">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-baseline gap-1.5 flex-wrap">
+                    <span className="text-xs sm:text-sm font-bold text-slate-400">Lei</span>
+                    <span className="font-mono">{avgOrderValue.toFixed(2)}</span>
                   </div>
                 </div>
-                <div className="absolute bottom-0 left-0 h-1 w-full bg-purple-500 opacity-80"></div>
+                <div className="text-[11px] text-slate-500 font-medium">
+                  Average spend per customer
+                </div>
               </div>
 
-              {/* Card 4: Portions Sold */}
-              <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all flex flex-col justify-between h-36 relative overflow-hidden group">
-                <div className="flex justify-between items-center">
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">Dishes Prepared</span>
-                  <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+              {/* Card 4: Items Sold */}
+              <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between hover:border-slate-300 transition-all">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-xs font-semibold text-slate-500">Dishes Sold</span>
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
                     <Utensils size={16} />
                   </div>
                 </div>
-                <div>
-                  <div className="text-2xl md:text-3xl font-black text-slate-900 tracking-tight tabular-nums">
-                    {totalItemsSold}
-                    <span className="text-xs font-semibold text-slate-400 ml-1.5 font-sans">portions</span>
-                  </div>
-                  <div className="text-[11px] text-slate-400 font-medium mt-1 truncate">
-                    Across {topSellingItems.length} active menu dishes
+                <div className="my-2.5">
+                  <div className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight flex items-baseline gap-1.5">
+                    <span className="font-mono">{totalItemsSold}</span>
+                    <span className="text-xs font-semibold text-slate-400">portions</span>
                   </div>
                 </div>
-                <div className="absolute bottom-0 left-0 h-1 w-full bg-amber-500 opacity-80"></div>
+                <div className="text-[11px] text-slate-500 font-medium">
+                  Across {topSellingItems.length} menu items
+                </div>
               </div>
             </div>
 
