@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, Package, Clock, Calendar } from 'lucide-react';
+import { ArrowLeft, Package, Clock, Calendar, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 
@@ -87,6 +87,13 @@ export default function OrderHistoryPage() {
                     </div>
                   ))}
                 </div>
+
+                {order.deliveryAddress && (
+                  <div className="flex items-center text-xs text-gray-600 mb-2 bg-gray-50 p-2 rounded-lg">
+                    <MapPin size={13} className="mr-1.5 text-green-600 flex-shrink-0" />
+                    <span className="truncate">{order.deliveryAddress}</span>
+                  </div>
+                )}
 
                 <div className="flex justify-between items-center pt-3 border-t border-gray-100">
                   <span className="text-sm text-gray-500">Total Amount</span>

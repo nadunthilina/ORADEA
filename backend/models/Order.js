@@ -13,6 +13,10 @@ const orderSchema = new mongoose.Schema({
   customerName: String,
   customerPhone: String,
   deliveryAddress: String,
+  deliveryLocation: {
+    lat: Number,
+    lng: Number,
+  },
   items: [orderItemSchema],
   subtotal: Number,
   deliveryFee: Number,

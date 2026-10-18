@@ -1,13 +1,15 @@
 'use client';
 
-import { ArrowLeft, MapPin, CreditCard, Clock, CheckCircle2, ChevronRight } from 'lucide-react';
+import { ArrowLeft, MapPin, CreditCard, Clock, CheckCircle2, ChevronRight, Map, ShieldCheck } from 'lucide-react';
 import Link from 'next/link';
 import { useCartStore } from '@/store/cartStore';
-import { useState } from 'react';
+import { useLocationStore } from '@/store/locationStore';
+import { useState, useEffect } from 'react';
 
 export default function CheckoutPage() {
   const { getTotals, clearCart } = useCartStore();
   const { total } = getTotals();
+  const { currentLocation, openMapPicker } = useLocationStore();
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [orderPlaced, setOrderPlaced] = useState(false);
   const [confirmedOrderId, setConfirmedOrderId] = useState('');
@@ -16,14 +18,24 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async () => {
     setIsPlacingOrder(true);
     try {
-      const userStr = localStorage.getItem('user');
+      const userStr = typeof window !== 'undefined' ? localStorage.getItem('user') : null;
       const user = userStr ? JSON.parse(userStr) : null;
       
+      const selectedAddress = currentLocation?.address || user?.address || 'Piața Unirii, Oradea';
+      const orderLocation = currentLocation?.lat && currentLocation?.lng ? {
+        lat: currentLocation.lat,
+        lng: currentLocation.lng
+      } : {
+        lat: 47.0561,
+        lng: 21.9379
+      };
+
       const orderData = {
         customerId: user?.id || 'guest',
         customerName: user?.fullName || 'Guest User', 
-        customerPhone: user?.mobile || '+94 000 000 000',
-        deliveryAddress: user?.address || 'Pickup from Store',
+        customerPhone: user?.mobile || '+40 74 000 0000',
+        deliveryAddress: selectedAddress,
+        deliveryLocation: orderLocation,
         items: useCartStore.getState().items,
         subtotal: getTotals().subtotal,
         deliveryFee: getTotals().deliveryFee,
@@ -122,15 +134,41 @@ export default function CheckoutPage() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="font-bold text-gray-900 flex items-center">
               <MapPin size={18} className="mr-2 text-green-600" />
-              Delivery Address
+              Delivery Address (Oradea)
             </h2>
-            <Link href="/profile" className="text-sm font-semibold text-green-600">Change</Link>
+            <button 
+              onClick={openMapPicker} 
+              type="button"
+              className="text-xs font-bold text-green-600 hover:text-green-700 bg-green-50 px-2.5 py-1 rounded-lg border border-green-200 active:scale-95 transition-all flex items-center"
+            >
+              <Map size={13} className="mr-1" />
+              Pick on Map
+            </button>
           </div>
-          <div className="text-gray-600 text-sm pl-6 border-l-2 border-transparent">
-            <p className="font-medium text-gray-900">{user?.fullName || 'Guest User'}</p>
-            <p>{user?.address || 'Pickup from Store'}</p>
-            <p className="mt-1 font-medium">{user?.mobile || ''}</p>
+          <div className="text-gray-600 text-sm pl-6 border-l-2 border-green-500 space-y-1">
+            <div className="flex items-center justify-between">
+              <p className="font-bold text-gray-900">{user?.fullName || 'Guest User'}</p>
+              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full flex items-center">
+                <ShieldCheck size={12} className="mr-1" /> Oradea Zone
+              </span>
+            </div>
+            <p className="text-gray-800 font-medium">{currentLocation?.address || user?.address || 'Piața Unirii, Oradea'}</p>
+            {currentLocation?.lat && (
+              <p className="text-[11px] text-gray-400">
+                GPS: {currentLocation.lat.toFixed(4)}, {currentLocation.lng.toFixed(4)} (OpenStreetMap)
+              </p>
+            )}
+            <p className="text-xs font-medium text-gray-500">{user?.mobile || '+40 74 000 0000'}</p>
           </div>
+
+          <button
+            onClick={openMapPicker}
+            type="button"
+            className="w-full mt-3 py-2 px-3 border border-dashed border-green-300 rounded-xl bg-green-50/50 hover:bg-green-50 text-green-700 text-xs font-bold flex items-center justify-center transition-colors"
+          >
+            <Map size={14} className="mr-1.5" />
+            Change location on Oradea map
+          </button>
         </div>
 
 

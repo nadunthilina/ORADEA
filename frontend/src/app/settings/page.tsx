@@ -1,13 +1,16 @@
 'use client';
 
-import { ArrowLeft, Save, MapPin, Phone } from 'lucide-react';
+import { ArrowLeft, Save, MapPin, Phone, Map } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { useLocationStore } from '@/store/locationStore';
 
 export default function SettingsPage() {
+  const { openMapPicker, currentLocation } = useLocationStore();
   const [user, setUser] = useState<any>(null);
   const [address, setAddress] = useState('');
   const [mobile, setMobile] = useState('');
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -18,8 +21,19 @@ export default function SettingsPage() {
       setUser(parsed);
       setAddress(parsed.address || '');
       setMobile(parsed.mobile || '');
+      if (parsed.deliveryLocation) {
+        setCoords(parsed.deliveryLocation);
+      }
     }
   }, []);
+
+  // When locationStore updates from map modal, sync with input
+  useEffect(() => {
+    if (currentLocation?.address && currentLocation.address !== address) {
+      setAddress(currentLocation.address);
+      setCoords({ lat: currentLocation.lat, lng: currentLocation.lng });
+    }
+  }, [currentLocation]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,10 +43,13 @@ export default function SettingsPage() {
     setMessage('');
 
     try {
+      const payload: any = { address, mobile };
+      if (coords) payload.deliveryLocation = coords;
+
       const res = await fetch(`/api/users/${user.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address, mobile })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       
@@ -75,18 +92,33 @@ export default function SettingsPage() {
           
           <form onSubmit={handleSave} className="space-y-5">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2 flex items-center">
-                <MapPin size={16} className="mr-2 text-gray-400" />
-                Delivery Address
-              </label>
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-sm font-bold text-gray-700 flex items-center">
+                  <MapPin size={16} className="mr-2 text-green-600" />
+                  Delivery Address (Oradea)
+                </label>
+                <button
+                  type="button"
+                  onClick={openMapPicker}
+                  className="text-xs font-bold text-green-600 hover:text-green-700 bg-green-50 px-2.5 py-1 rounded-lg border border-green-200 active:scale-95 transition-all flex items-center"
+                >
+                  <Map size={13} className="mr-1" />
+                  Pick on Map
+                </button>
+              </div>
               <textarea 
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
                 required
                 rows={3}
                 className="w-full border border-gray-200 p-3 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all resize-none text-sm"
-                placeholder="Enter your full delivery address"
+                placeholder="e.g. Piața Unirii, Oradea"
               />
+              {coords && (
+                <p className="text-[11px] text-gray-400 mt-1 pl-1">
+                  Saved GPS coordinates: {coords.lat.toFixed(4)}, {coords.lng.toFixed(4)}
+                </p>
+              )}
             </div>
 
             <div>

@@ -24,10 +24,100 @@ app.get('/', (req, res) => {
   res.send('Backend Server is running!');
 });
 
+// Geocode Reverse Route (OpenStreetMap Nominatim)
+app.get('/api/geocode/reverse', async (req, res) => {
+  try {
+    const { lat, lng } = req.query;
+    if (!lat || !lng) {
+      return res.status(400).json({ success: false, error: 'lat and lng parameters are required' });
+    }
+
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&addressdetails=1`,
+      {
+        headers: { 'User-Agent': 'FoodsOradeaApp/1.0 (delivery@foodsoradea.ro)' }
+      }
+    );
+
+    if (!response.ok) {
+      return res.status(response.status).json({ success: false, error: 'Geocoding service unavailable' });
+    }
+
+    const data = await response.json();
+    const addr = data.address || {};
+    
+    // Format clean street and area for Oradea
+    const street = addr.road || addr.pedestrian || addr.footway || addr.suburb || '';
+    const number = addr.house_number ? ` Nr. ${addr.house_number}` : '';
+    const neighborhood = addr.suburb || addr.neighbourhood || addr.quarter || '';
+    const city = addr.city || addr.town || addr.municipality || 'Oradea';
+    
+    let cleanAddress = [street + number, neighborhood, city].filter(Boolean).join(', ');
+    if (!cleanAddress) cleanAddress = data.display_name || 'Oradea, România';
+
+    res.status(200).json({
+      success: true,
+      formattedAddress: cleanAddress,
+      displayName: data.display_name,
+      addressDetails: addr,
+      lat: parseFloat(lat),
+      lng: parseFloat(lng)
+    });
+  } catch (error) {
+    console.error('Reverse geocode error:', error);
+    res.status(500).json({ success: false, error: 'Internal geocoding error' });
+  }
+});
+
+// Geocode Search Route (OpenStreetMap Nominatim bounded to Oradea)
+app.get('/api/geocode/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || typeof q !== 'string') {
+      return res.status(400).json({ success: false, error: 'Query parameter q is required' });
+    }
+
+    // Search query bounded to Oradea bounding box [minLon, maxLat, maxLon, minLat]
+    const query = `${q.trim()}, Oradea, Romania`;
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&bounded=1&viewbox=21.8428,47.1421,22.0322,47.0070&limit=6&addressdetails=1`,
+      {
+        headers: { 'User-Agent': 'FoodsOradeaApp/1.0 (delivery@foodsoradea.ro)' }
+      }
+    );
+
+    if (!response.ok) {
+      return res.status(response.status).json({ success: false, error: 'Search geocoding unavailable' });
+    }
+
+    const data = await response.json();
+    const results = data.map(item => {
+      const addr = item.address || {};
+      const street = addr.road || addr.pedestrian || addr.footway || item.display_name.split(',')[0];
+      const number = addr.house_number ? ` Nr. ${addr.house_number}` : '';
+      const neighborhood = addr.suburb || addr.neighbourhood || '';
+      const label = [street + number, neighborhood, 'Oradea'].filter(Boolean).join(', ');
+
+      return {
+        name: label,
+        displayName: item.display_name,
+        lat: parseFloat(item.lat),
+        lng: parseFloat(item.lon),
+        type: item.type
+      };
+    });
+
+    res.status(200).json({ success: true, results });
+  } catch (error) {
+    console.error('Search geocode error:', error);
+    res.status(500).json({ success: false, error: 'Internal search geocoding error' });
+  }
+});
+
 // Auth Routes
 app.post('/api/auth/register', async (req, res) => {
   try {
-    const { fullName, email, mobile, address, password } = req.body;
+    const { fullName, email, mobile, address, deliveryLocation, password } = req.body;
     
     // Check if user exists
     const existingUser = await User.findOne({ email });
@@ -35,12 +125,19 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ success: false, error: 'Email already exists' });
     }
 
-    const newUser = new User({ fullName, email, mobile, address, password });
+    const newUser = new User({ fullName, email, mobile, address, deliveryLocation, password });
     await newUser.save();
 
     res.status(201).json({ 
       success: true, 
-      user: { id: newUser._id, fullName: newUser.fullName, email: newUser.email, mobile: newUser.mobile, address: newUser.address } 
+      user: { 
+        id: newUser._id, 
+        fullName: newUser.fullName, 
+        email: newUser.email, 
+        mobile: newUser.mobile, 
+        address: newUser.address,
+        deliveryLocation: newUser.deliveryLocation
+      } 
     });
   } catch (error) {
     console.error(error);
@@ -63,7 +160,14 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.status(200).json({ 
       success: true, 
-      user: { id: user._id, fullName: user.fullName, email: user.email, mobile: user.mobile, address: user.address } 
+      user: { 
+        id: user._id, 
+        fullName: user.fullName, 
+        email: user.email, 
+        mobile: user.mobile, 
+        address: user.address,
+        deliveryLocation: user.deliveryLocation 
+      } 
     });
   } catch (error) {
     console.error(error);
@@ -192,12 +296,13 @@ app.post('/api/users', async (req, res) => {
 // Update User Route
 app.put('/api/users/:id', async (req, res) => {
   try {
-    const { fullName, address, mobile, password } = req.body;
+    const { fullName, address, mobile, password, deliveryLocation } = req.body;
     const updateData = {};
     if (fullName) updateData.fullName = fullName;
     if (address) updateData.address = address;
     if (mobile) updateData.mobile = mobile;
     if (password) updateData.password = password;
+    if (deliveryLocation) updateData.deliveryLocation = deliveryLocation;
 
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id, 
@@ -218,6 +323,7 @@ app.put('/api/users/:id', async (req, res) => {
         email: updatedUser.email, 
         mobile: updatedUser.mobile, 
         address: updatedUser.address,
+        deliveryLocation: updatedUser.deliveryLocation,
         createdAt: updatedUser.createdAt
       } 
     });

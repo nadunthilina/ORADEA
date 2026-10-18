@@ -5,6 +5,10 @@ const userSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   mobile: { type: String, required: true },
   address: { type: String, required: true },
+  deliveryLocation: {
+    lat: Number,
+    lng: Number,
+  },
   password: { type: String, required: true },
 }, { timestamps: true });
 

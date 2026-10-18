@@ -2,6 +2,7 @@
 
 import { usePathname } from 'next/navigation';
 import { BottomNav } from './BottomNav';
+import OradeaMapModal from '@/components/map/OradeaMapModal';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -21,6 +22,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         {children}
       </div>
       <BottomNav />
+      <OradeaMapModal />
     </div>
   );
 }

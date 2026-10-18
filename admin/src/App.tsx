@@ -12,7 +12,9 @@ import {
   AlertCircle, 
   Users, 
   ChefHat, 
-  Bell 
+  Bell,
+  MapPin,
+  Navigation 
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -961,16 +963,54 @@ export default function AdminDashboard() {
                       <span className="bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider animate-pulse">New Order</span>
                     </div>
                   )}
-                  <div className="flex justify-between items-start mb-4">
+                  <div className="flex justify-between items-start mb-3">
                     <div>
                       <h3 className="font-black text-lg tracking-tight text-gray-900">{order.orderId}</h3>
                       <p className="text-xs text-gray-500 font-medium">{new Date(order.createdAt).toLocaleString()}</p>
-                      <p className="text-xs mt-2 font-medium"><span className="font-bold text-gray-900">Customer:</span> {order.customerName}</p>
+                      <p className="text-xs mt-1.5 font-medium">
+                        <span className="font-bold text-gray-900">Customer:</span> {order.customerName}
+                        {order.customerPhone && (
+                          <a href={`tel:${order.customerPhone}`} className="ml-2 font-bold text-green-700 hover:text-green-800 hover:underline inline-flex items-center">
+                            📞 {order.customerPhone}
+                          </a>
+                        )}
+                      </p>
+
+                      {order.deliveryAddress && (
+                        <div className="mt-2 bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-2.5 max-w-lg">
+                          <div className="flex items-start text-xs text-emerald-950 font-medium">
+                            <MapPin size={15} className="mr-1.5 text-emerald-600 flex-shrink-0 mt-0.5" />
+                            <div>
+                              <span className="font-bold">Delivery Address: </span>
+                              <span>{order.deliveryAddress}</span>
+                              {order.deliveryLocation?.lat && (
+                                <span className="block text-[11px] text-emerald-700 mt-0.5 font-mono">
+                                  GPS: {order.deliveryLocation.lat.toFixed(5)}, {order.deliveryLocation.lng.toFixed(5)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <div className="text-right">
                       <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">{order.orderStatus}</span>
                       <p className="font-black text-xl mt-2 text-green-600">Lei {order.totalDue}</p>
                     </div>
+                  </div>
+
+                  {/* Delivery Location & Map Navigation Row */}
+                  <div className="flex flex-col sm:flex-row gap-2 mb-2">
+                    <a
+                      href={`https://www.google.com/maps/dir/?api=1&destination=${order.deliveryLocation?.lat || 47.0561},${order.deliveryLocation?.lng || 21.9379}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2.5 rounded-xl text-xs font-bold flex-1 transition-all flex items-center justify-center gap-1.5 shadow-sm active:scale-95"
+                      title="Open GPS Navigation in Google Maps"
+                    >
+                      <Navigation size={14} />
+                      <span>Start GPS Delivery Navigation (Google Maps)</span>
+                    </a>
                   </div>
                   
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -1489,9 +1529,34 @@ export default function AdminDashboard() {
                                 <span className="text-gray-400">📱</span>
                                 <a href={`tel:${user.mobile}`} className="hover:underline text-gray-700">{user.mobile}</a>
                               </div>
-                              <div className="flex items-center gap-1.5 sm:col-span-2">
-                                <span className="text-gray-400">📍</span>
-                                <span className="truncate">{user.address}</span>
+                            </div>
+
+                            {/* User Address & GPS Navigation */}
+                            <div className="mt-2.5 p-2.5 bg-emerald-50/70 border border-emerald-200/80 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                              <div className="flex items-start gap-1.5 text-xs text-emerald-950 font-medium min-w-0">
+                                <MapPin size={14} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+                                <div className="min-w-0">
+                                  <span className="font-bold">Address: </span>
+                                  <span>{user.address || 'No address set'}</span>
+                                  {user.deliveryLocation?.lat && (
+                                    <span className="block text-[11px] text-emerald-700 font-mono mt-0.5">
+                                      GPS: {user.deliveryLocation.lat.toFixed(5)}, {user.deliveryLocation.lng.toFixed(5)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <a
+                                  href={`https://www.google.com/maps/dir/?api=1&destination=${user.deliveryLocation?.lat || 47.0561},${user.deliveryLocation?.lng || 21.9379}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-xs active:scale-95 cursor-pointer"
+                                  title="Open Turn-by-Turn GPS Directions in Google Maps"
+                                >
+                                  <Navigation size={13} />
+                                  <span>GPS Directions (Google Maps)</span>
+                                </a>
                               </div>
                             </div>
                             

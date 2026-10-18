@@ -1,17 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Lock, User, ChevronRight, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, User, ChevronRight, Eye, EyeOff, Map } from 'lucide-react';
 import Link from 'next/link';
+import { useLocationStore } from '@/store/locationStore';
 
 export default function AuthPage() {
+  const { openMapPicker, currentLocation } = useLocationStore();
   const [isLogin, setIsLogin] = useState(true);
-  const [formData, setFormData] = useState({ fullName: '', email: '', mobile: '', address: '', password: '' });
+  const [formData, setFormData] = useState<any>({ fullName: '', email: '', mobile: '', address: '', deliveryLocation: null, password: '' });
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+
+  // Sync selected map location to registration form
+  useEffect(() => {
+    if (!isLogin && currentLocation?.address) {
+      setFormData((prev: any) => ({
+        ...prev,
+        address: currentLocation.address,
+        deliveryLocation: { lat: currentLocation.lat, lng: currentLocation.lng }
+      }));
+    }
+  }, [currentLocation, isLogin]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -140,7 +153,17 @@ export default function AuthPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Address</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-sm font-medium text-gray-700">Delivery Address (Oradea)</label>
+                  <button
+                    type="button"
+                    onClick={openMapPicker}
+                    className="text-xs font-bold text-green-600 hover:text-green-700 flex items-center bg-green-50 px-2 py-0.5 rounded-lg border border-green-200"
+                  >
+                    <Map size={12} className="mr-1" />
+                    Pick on Map
+                  </button>
+                </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <span className="text-gray-400 font-medium">📍</span>
@@ -150,8 +173,8 @@ export default function AuthPage() {
                     required
                     value={formData.address}
                     onChange={(e) => setFormData({...formData, address: e.target.value})}
-                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-green-500 focus:border-green-500 bg-gray-50 focus:bg-white transition-colors"
-                    placeholder="Str. Republicii Nr. 12, Ap 4"
+                    className="block w-full pl-10 pr-3 py-3 border border-gray-200 rounded-xl focus:ring-green-500 focus:border-green-500 bg-gray-50 focus:bg-white transition-colors text-sm"
+                    placeholder="Str. Republicii Nr. 12, Oradea"
                   />
                 </div>
               </div>
