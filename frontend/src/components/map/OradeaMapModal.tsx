@@ -78,12 +78,12 @@ export default function OradeaMapModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex flex-col justify-end sm:justify-center sm:items-center p-0 sm:p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-200">
       {/* Background click to dismiss */}
       <div className="absolute inset-0" onClick={handleClose} />
 
-      {/* Modal Dialog Content */}
-      <div className="relative w-full max-w-lg h-[92vh] max-h-[720px] z-10 animate-in zoom-in-95 duration-200">
+      {/* Modal Dialog Content - fits exactly inside mobile screen without overflow */}
+      <div className="relative w-full sm:max-w-lg h-full max-h-[100svh] sm:h-[90vh] sm:max-h-[760px] z-10 sm:rounded-2xl overflow-hidden shadow-2xl bg-white flex flex-col animate-in slide-in-from-bottom-4 sm:zoom-in-95 duration-200">
         <DynamicOradeaMapPicker
           initialLat={initialLat ?? currentLocation?.lat}
           initialLng={initialLng ?? currentLocation?.lng}

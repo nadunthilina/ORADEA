@@ -195,6 +195,17 @@ export default function OradeaMapPicker({
       setTimeout(() => {
         map.invalidateSize();
       }, 250);
+
+      // Automatically recalculate Leaflet map size on container resize (mobile keyboard, orientation)
+      let resizeObserver: ResizeObserver | null = null;
+      if (typeof ResizeObserver !== 'undefined' && mapContainerRef.current) {
+        resizeObserver = new ResizeObserver(() => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.invalidateSize();
+          }
+        });
+        resizeObserver.observe(mapContainerRef.current);
+      }
     }
 
     initMap();
@@ -311,19 +322,19 @@ export default function OradeaMapPicker({
   };
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-2xl overflow-hidden shadow-2xl relative">
+    <div className="flex flex-col h-full w-full bg-white sm:rounded-2xl overflow-hidden shadow-2xl relative">
       {/* Top Header & Search Bar */}
-      <div className="p-4 bg-white border-b border-gray-100 space-y-3 z-20">
+      <div className="p-3 sm:p-4 bg-white border-b border-gray-100 space-y-2 sm:space-y-3 shrink-0 z-20">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-              <MapPin size={18} />
+            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0">
+              <MapPin size={16} />
             </div>
             <div>
-              <h2 className="text-base font-bold text-gray-900 leading-tight">
+              <h2 className="text-sm sm:text-base font-bold text-gray-900 leading-tight">
                 Select Delivery Location in Oradea
               </h2>
-              <p className="text-xs text-gray-500">
+              <p className="text-[11px] sm:text-xs text-gray-500 hidden xs:block sm:block">
                 Delivery exclusively within Oradea City (OpenStreetMap)
               </p>
             </div>
@@ -331,9 +342,11 @@ export default function OradeaMapPicker({
           {onCancel && (
             <button
               onClick={onCancel}
+              type="button"
               className="p-1.5 rounded-full hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
+              aria-label="Close"
             >
-              <X size={20} />
+              <X size={18} />
             </button>
           )}
         </div>
@@ -341,14 +354,14 @@ export default function OradeaMapPicker({
         {/* Search Input */}
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-            {isSearching ? <Loader2 size={16} className="animate-spin text-green-600" /> : <Search size={16} />}
+            {isSearching ? <Loader2 size={15} className="animate-spin text-green-600" /> : <Search size={15} />}
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
             placeholder="Search street, area, or landmark in Oradea..."
-            className="w-full pl-9 pr-9 py-2.5 text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all placeholder:text-gray-400"
+            className="w-full pl-9 pr-9 py-2 sm:py-2.5 text-xs sm:text-sm bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none transition-all placeholder:text-gray-400"
           />
           {searchQuery && (
             <button
@@ -357,22 +370,24 @@ export default function OradeaMapPicker({
                 setSearchResults([]);
                 setShowSearchResults(false);
               }}
+              type="button"
               className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600"
             >
-              <X size={16} />
+              <X size={15} />
             </button>
           )}
 
           {/* Autocomplete Dropdown */}
           {showSearchResults && searchResults.length > 0 && (
-            <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-50 max-h-56 overflow-y-auto">
+            <div className="absolute left-0 right-0 top-full mt-1.5 bg-white rounded-xl shadow-xl border border-gray-100 py-1.5 z-50 max-h-52 overflow-y-auto">
               {searchResults.map((item, idx) => (
                 <button
                   key={idx}
+                  type="button"
                   onClick={() => handleSelectSearchResult(item)}
-                  className="w-full text-left px-3.5 py-2.5 hover:bg-green-50 text-xs flex items-center space-x-2 border-b border-gray-50 last:border-0 transition-colors"
+                  className="w-full text-left px-3.5 py-2 hover:bg-green-50 text-xs flex items-center space-x-2 border-b border-gray-50 last:border-0 transition-colors"
                 >
-                  <MapPin size={14} className="text-green-600 flex-shrink-0" />
+                  <MapPin size={13} className="text-green-600 shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold text-gray-800 truncate">{item.name}</p>
                     <p className="text-[11px] text-gray-400 truncate">{item.displayName}</p>
@@ -385,14 +400,15 @@ export default function OradeaMapPicker({
 
         {/* Quick Neighborhood Jump Pills */}
         <div className="flex items-center space-x-1.5 overflow-x-auto hide-scrollbar py-0.5 -mx-1 px-1">
-          <span className="text-[11px] font-bold text-gray-400 uppercase tracking-wider flex-shrink-0 mr-1">
+          <span className="text-[10px] sm:text-[11px] font-bold text-gray-400 uppercase tracking-wider shrink-0 mr-1">
             Areas:
           </span>
           {ORADEA_NEIGHBORHOODS.slice(0, 7).map((hood) => (
             <button
               key={hood.name}
+              type="button"
               onClick={() => handleSelectNeighborhood(hood)}
-              className="text-xs whitespace-nowrap px-2.5 py-1 rounded-lg bg-gray-100 hover:bg-green-100 hover:text-green-700 text-gray-700 font-medium transition-all active:scale-95"
+              className="text-[11px] sm:text-xs whitespace-nowrap px-2.5 py-0.5 sm:py-1 rounded-lg bg-gray-100 hover:bg-green-100 hover:text-green-700 text-gray-700 font-medium transition-all active:scale-95 shrink-0"
             >
               {hood.name}
             </button>
@@ -401,86 +417,89 @@ export default function OradeaMapPicker({
       </div>
 
       {/* Map Container Area */}
-      <div className="flex-1 relative min-h-[320px] bg-gray-100">
-        <div ref={mapContainerRef} className="w-full h-full" style={{ minHeight: '320px' }} />
+      <div className="flex-1 relative min-h-[140px] sm:min-h-[220px] bg-gray-100 overflow-hidden">
+        <div ref={mapContainerRef} className="w-full h-full" />
 
         {/* GPS Alert Toast */}
         {gpsNotice && (
-          <div className="absolute top-3 left-4 right-4 z-[1000] bg-amber-500 text-white text-xs px-3.5 py-2 rounded-xl shadow-lg flex items-center space-x-2 animate-in fade-in slide-in-from-top duration-300">
-            <AlertTriangle size={16} className="flex-shrink-0" />
+          <div className="absolute top-2.5 left-3 right-3 sm:top-3 sm:left-4 sm:right-4 z-[1000] bg-amber-500 text-white text-xs px-3 py-1.5 sm:py-2 rounded-xl shadow-lg flex items-center space-x-2 animate-in fade-in slide-in-from-top duration-300">
+            <AlertTriangle size={15} className="shrink-0" />
             <span>{gpsNotice}</span>
           </div>
         )}
 
         {/* Floating Controls on Map */}
-        <div className="absolute bottom-4 right-4 z-[1000] flex flex-col space-y-2">
+        <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 z-[1000] flex flex-col space-y-1.5 sm:space-y-2">
           {/* GPS Current Location Button */}
           <button
+            type="button"
             onClick={handleUseGPS}
             disabled={isLocating}
             title="My Location (GPS)"
-            className="w-11 h-11 bg-white hover:bg-gray-50 active:scale-95 text-gray-700 rounded-full shadow-lg border border-gray-200 flex items-center justify-center transition-all disabled:opacity-50"
+            className="w-10 h-10 sm:w-11 sm:h-11 bg-white hover:bg-gray-50 active:scale-95 text-gray-700 rounded-full shadow-lg border border-gray-200 flex items-center justify-center transition-all disabled:opacity-50"
           >
             {isLocating ? (
-              <Loader2 size={18} className="animate-spin text-green-600" />
+              <Loader2 size={16} className="animate-spin text-green-600" />
             ) : (
-              <Navigation size={18} className="text-green-600" />
+              <Navigation size={16} className="text-green-600" />
             )}
           </button>
 
           {/* Reset to Oradea Center Button */}
           <button
+            type="button"
             onClick={handleResetToCenter}
             title="Oradea City Center"
-            className="w-11 h-11 bg-white hover:bg-gray-50 active:scale-95 text-gray-700 rounded-full shadow-lg border border-gray-200 flex items-center justify-center transition-all"
+            className="w-10 h-10 sm:w-11 sm:h-11 bg-white hover:bg-gray-50 active:scale-95 text-gray-700 rounded-full shadow-lg border border-gray-200 flex items-center justify-center transition-all"
           >
-            <RotateCcw size={18} className="text-gray-600" />
+            <RotateCcw size={16} className="text-gray-600" />
           </button>
         </div>
 
         {/* Legend Badge: Oradea Delivery Boundary */}
-        <div className="absolute top-3 left-3 z-[1000] bg-white/95 backdrop-blur-sm border border-green-200 text-green-800 text-[11px] font-semibold px-2.5 py-1.5 rounded-lg shadow-sm flex items-center space-x-1.5 pointer-events-none">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+        <div className="absolute top-2.5 left-2.5 sm:top-3 sm:left-3 z-[1000] bg-white/95 backdrop-blur-sm border border-green-200 text-green-800 text-[10px] sm:text-[11px] font-semibold px-2 py-1 sm:px-2.5 sm:py-1.5 rounded-lg shadow-sm flex items-center space-x-1.5 pointer-events-none">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block"></span>
           <span>Oradea Delivery Zone (Bihor)</span>
         </div>
       </div>
 
       {/* Bottom Information & Confirmation Card */}
-      <div className="p-4 bg-white border-t border-gray-100 space-y-3 z-20">
+      <div className="p-3 sm:p-4 bg-white border-t border-gray-100 space-y-2 sm:space-y-3 shrink-0 z-30 pb-[max(12px,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,0.06)]">
         {/* Boundary Validation Alert */}
         {isValid ? (
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3 flex items-start space-x-2.5">
-            <CheckCircle2 size={18} className="text-emerald-600 flex-shrink-0 mt-0.5" />
+          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-2.5 sm:p-3 flex items-start space-x-2.5">
+            <CheckCircle2 size={17} className="text-emerald-600 shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-emerald-800 uppercase tracking-wider">
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-[11px] sm:text-xs font-bold text-emerald-800 uppercase tracking-wider">
                   Valid location in Oradea
                 </span>
-                <span className="text-[11px] font-medium text-emerald-600 bg-emerald-100/70 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] sm:text-[11px] font-medium text-emerald-600 bg-emerald-100/70 px-2 py-0.5 rounded-full shrink-0">
                   Delivery 25-40 min
                 </span>
               </div>
-              <p className="text-sm font-semibold text-gray-900 mt-0.5 truncate">
+              <p className="text-xs sm:text-sm font-semibold text-gray-900 mt-0.5 truncate">
                 {isGeocoding ? 'Detecting address...' : address}
               </p>
-              <p className="text-[11px] text-gray-500 mt-0.5">
+              <p className="text-[10px] sm:text-[11px] text-gray-500 mt-0.5">
                 Coordinates: {coords.lat.toFixed(5)}, {coords.lng.toFixed(5)}
               </p>
             </div>
           </div>
         ) : (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start space-x-2.5">
-            <AlertTriangle size={18} className="text-red-500 flex-shrink-0 mt-0.5" />
+          <div className="bg-red-50 border border-red-200 rounded-xl p-2.5 sm:p-3 flex items-start space-x-2.5">
+            <AlertTriangle size={17} className="text-red-500 shrink-0 mt-0.5" />
             <div className="flex-1 min-w-0">
-              <span className="text-xs font-bold text-red-800 uppercase tracking-wider">
+              <span className="text-[11px] sm:text-xs font-bold text-red-800 uppercase tracking-wider">
                 Outside Oradea Delivery Zone
               </span>
-              <p className="text-xs text-red-700 mt-0.5">
+              <p className="text-[11px] sm:text-xs text-red-700 mt-0.5 leading-tight">
                 The selected point is outside Oradea city boundary. Please select a location inside the green delivery zone.
               </p>
               <button
+                type="button"
                 onClick={handleResetToCenter}
-                className="mt-2 text-xs font-bold text-red-700 hover:text-red-800 underline flex items-center"
+                className="mt-1 text-xs font-bold text-red-700 hover:text-red-800 underline flex items-center"
               >
                 Reset pin to Oradea center
               </button>
@@ -491,23 +510,24 @@ export default function OradeaMapPicker({
         {/* Optional Apartment / Intercom details input */}
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-            <Building2 size={16} />
+            <Building2 size={15} />
           </div>
           <input
             type="text"
             value={apartmentDetails}
             onChange={(e) => setApartmentDetails(e.target.value)}
             placeholder="Address details: Building, Entrance, Floor, Apt, Intercom (optional)"
-            className="w-full pl-9 pr-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition-all placeholder:text-gray-400"
+            className="w-full pl-9 pr-3 py-1.5 sm:py-2 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-green-500 outline-none transition-all placeholder:text-gray-400"
           />
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center space-x-2 pt-1">
+        {/* Action Buttons - Always Visible and Touch-Friendly */}
+        <div className="flex items-center space-x-2 pt-0.5">
           {onCancel && (
             <button
               onClick={onCancel}
-              className="flex-1 py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl text-sm transition-colors active:scale-[0.98]"
+              type="button"
+              className="flex-1 py-2.5 sm:py-3.5 px-3 sm:px-4 bg-gray-100 hover:bg-gray-200 active:bg-gray-300 text-gray-700 font-bold rounded-xl text-xs sm:text-sm transition-colors active:scale-[0.98]"
             >
               Cancel
             </button>
@@ -515,16 +535,17 @@ export default function OradeaMapPicker({
 
           <button
             onClick={handleConfirm}
+            type="button"
             disabled={!isValid || isGeocoding}
-            className={`flex-[2] py-3.5 px-4 font-bold rounded-xl text-sm flex items-center justify-center transition-all ${
+            className={`flex-[2] py-2.5 sm:py-3.5 px-3 sm:px-4 font-bold rounded-xl text-xs sm:text-sm flex items-center justify-center transition-all ${
               isValid && !isGeocoding
-                ? 'bg-green-600 hover:bg-green-700 text-white shadow-lg shadow-green-600/30 active:scale-[0.98]'
+                ? 'bg-green-600 hover:bg-green-700 active:bg-green-800 text-white shadow-lg shadow-green-600/30 active:scale-[0.98]'
                 : 'bg-gray-200 text-gray-400 cursor-not-allowed'
             }`}
           >
             {isGeocoding ? (
               <span className="flex items-center">
-                <Loader2 size={16} className="animate-spin mr-2" />
+                <Loader2 size={15} className="animate-spin mr-1.5" />
                 Updating...
               </span>
             ) : isValid ? (
