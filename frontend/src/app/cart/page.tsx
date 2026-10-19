@@ -36,20 +36,24 @@ export default function CartPage() {
     );
   }
 
+  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col pb-safe">
+    <div className="min-h-screen bg-gray-50 flex flex-col relative">
+      {/* Header */}
       <div className="bg-white px-4 py-4 flex items-center justify-between shadow-sm sticky top-0 z-40">
         <div className="flex items-center">
-          <Link href="/" className="p-2 -ml-2 mr-2 active:bg-gray-100 rounded-full">
+          <Link href="/" className="p-2 -ml-2 mr-2 active:bg-gray-100 rounded-full transition-colors">
             <ArrowLeft size={24} />
           </Link>
           <h1 className="text-xl font-bold">My Cart</h1>
         </div>
-        <span className="text-sm font-semibold text-gray-500">{items.length} items</span>
+        <span className="text-sm font-semibold text-gray-500">{items.length} {items.length === 1 ? 'item' : 'items'}</span>
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 py-6">
-        <div className="space-y-4">
+      {/* Cart Items & Order Summary */}
+      <div className="flex-1 overflow-y-auto px-4 py-5 pb-28">
+        <div className="space-y-3">
           <AnimatePresence>
             {items.map((item) => (
               <motion.div
@@ -64,19 +68,20 @@ export default function CartPage() {
                   <Image src={item.image || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80'} alt={item.title} fill className="object-cover" />
                 </div>
                 
-                <div className="flex-1 flex flex-col py-1">
-                  <div className="flex justify-between items-start mb-1">
+                <div className="flex-1 flex flex-col py-0.5">
+                  <div className="flex justify-between items-start mb-0.5">
                     <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 leading-tight pr-2">
                       {item.title}
                     </h3>
                     <button 
                       onClick={() => removeItem(item.id)}
-                      className="text-gray-400 hover:text-red-500 p-1 -mr-1"
+                      className="text-gray-400 hover:text-red-500 p-1 -mr-1 transition-colors"
+                      aria-label="Remove item"
                     >
                       <Trash2 size={16} />
                     </button>
                   </div>
-                  <div className="text-xs text-gray-500 mb-auto">{item.unit}</div>
+                  <div className="text-xs text-gray-500 mb-auto">{item.unit || '1 portion'}</div>
                   
                   <div className="flex items-center justify-between mt-2">
                     <span className="font-bold text-gray-900">
@@ -86,7 +91,8 @@ export default function CartPage() {
                     <div className="flex items-center bg-gray-100 rounded-lg">
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                        className="p-1.5 text-gray-600 hover:text-gray-900"
+                        className="p-1.5 text-gray-600 hover:text-gray-900 active:scale-90 transition-transform"
+                        aria-label="Decrease quantity"
                       >
                         <Minus size={16} />
                       </button>
@@ -95,7 +101,8 @@ export default function CartPage() {
                       </span>
                       <button
                         onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                        className="p-1.5 text-gray-600 hover:text-gray-900"
+                        className="p-1.5 text-gray-600 hover:text-gray-900 active:scale-90 transition-transform"
+                        aria-label="Increase quantity"
                       >
                         <Plus size={16} />
                       </button>
@@ -107,9 +114,9 @@ export default function CartPage() {
           </AnimatePresence>
         </div>
 
-        <div className="mt-8 bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
-          <h3 className="font-bold text-gray-900 mb-4">Order Summary</h3>
-          <div className="space-y-3 text-sm">
+        <div className="mt-5 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+          <h3 className="font-bold text-gray-900 mb-3 text-base">Order Summary</h3>
+          <div className="space-y-2.5 text-sm">
             <div className="flex justify-between text-gray-600">
               <span>Subtotal</span>
               <span className="font-medium">Lei {subtotal.toFixed(2)}</span>
@@ -124,25 +131,12 @@ export default function CartPage() {
                 <span className="font-medium">Lei {platformFee.toFixed(2)}</span>
               </div>
             )}
-            <div className="border-t border-gray-100 pt-3 mt-3 flex justify-between items-center">
+            <div className="border-t border-gray-100 pt-2.5 mt-2 flex justify-between items-center">
               <span className="font-bold text-gray-900 text-base">Total Due</span>
               <span className="font-bold text-green-600 text-lg">Lei {total.toFixed(2)}</span>
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="bg-white p-4 border-t border-gray-100 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] sticky bottom-0">
-        <Link 
-          href="/checkout"
-          className="w-full bg-green-600 text-white font-bold py-4 rounded-xl flex items-center justify-between px-6 shadow-lg shadow-green-200 active:scale-[0.98] transition-transform"
-        >
-          <span>Checkout</span>
-          <div className="flex items-center">
-            <span className="mr-2">Lei {total.toFixed(2)}</span>
-            <ChevronRight size={20} />
-          </div>
-        </Link>
       </div>
     </div>
   );

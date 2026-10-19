@@ -16,9 +16,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const hasFixedActionBar = pathname === '/cart' || pathname === '/checkout';
+
   return (
     <div className="max-w-md mx-auto w-full bg-white min-h-screen relative shadow-2xl flex flex-col">
-      <div className="flex-1 pb-20">
+      <div className={`flex-1 ${hasFixedActionBar ? 'pb-36' : 'pb-20'}`}>
         {children}
       </div>
       <BottomNav />

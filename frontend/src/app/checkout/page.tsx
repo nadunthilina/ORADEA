@@ -174,19 +174,26 @@ export default function CheckoutPage() {
 
       </div>
 
-      <div className="bg-white p-4 border-t border-gray-100 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] sticky bottom-0">
+      {/* Fixed Bottom Action Bar */}
+      <div 
+        style={{ bottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}
+        className="fixed left-0 right-0 max-w-md mx-auto bg-white/95 backdrop-blur-md p-3 px-4 border-t border-gray-100 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] z-40"
+      >
         <button
           onClick={handlePlaceOrder}
           disabled={isPlacingOrder}
-          className="w-full bg-green-600 text-white font-bold py-4 rounded-xl flex items-center justify-center shadow-lg shadow-green-200 active:scale-[0.98] transition-transform disabled:opacity-70"
+          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full flex flex-col items-center justify-center shadow-lg shadow-green-200 active:scale-[0.98] transition-all disabled:opacity-70"
         >
           {isPlacingOrder ? (
-            <span className="flex items-center">
-              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-              Processing...
+            <span className="flex items-center text-sm font-semibold">
+              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+              Processing Order...
             </span>
           ) : (
-            `Place Order • Lei ${total.toFixed(2)}`
+            <>
+              <span className="text-base font-bold leading-tight">Place Order</span>
+              <span className="text-xs font-medium text-green-100 leading-tight">Lei {total.toFixed(2)} • Cash on Delivery</span>
+            </>
           )}
         </button>
       </div>
