@@ -20,6 +20,8 @@ export const useCartStore = create<CartState>()(
     (set, get) => ({
       items: [],
       addItem: (product) => {
+        // Block adding if product is blurred / marked unavailable by admin
+        if (product.isAvailable === false) return;
         set((state) => {
           const existing = state.items.find((i) => i.id === product.id);
           if (existing) {

@@ -56,13 +56,24 @@ export function BottomNav() {
           )}
 
           {/* Checkout Button on right */}
-          <Link 
-            href="/checkout"
-            className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-full py-2.5 px-6 flex flex-col items-center justify-center font-bold shadow-lg shadow-green-200 active:scale-[0.98] transition-all"
-          >
-            <span className="text-base font-bold leading-tight">Checkout</span>
-            <span className="text-xs font-medium text-green-100 leading-tight">Lei {total.toFixed(2)}</span>
-          </Link>
+          {items.some(i => i.isAvailable === false) ? (
+            <button 
+              disabled
+              className="flex-1 bg-gray-400 text-white rounded-full py-2.5 px-4 flex flex-col items-center justify-center font-bold cursor-not-allowed select-none shadow-none"
+              title="Please remove unavailable items before checking out"
+            >
+              <span className="text-xs font-bold leading-tight">Remove Unavailable Items</span>
+              <span className="text-[10px] text-gray-200 leading-tight">Cannot checkout out-of-stock items</span>
+            </button>
+          ) : (
+            <Link 
+              href="/checkout"
+              className="flex-1 bg-green-600 hover:bg-green-700 text-white rounded-full py-2.5 px-6 flex flex-col items-center justify-center font-bold shadow-lg shadow-green-200 active:scale-[0.98] transition-all"
+            >
+              <span className="text-base font-bold leading-tight">Checkout</span>
+              <span className="text-xs font-medium text-green-100 leading-tight">Lei {total.toFixed(2)}</span>
+            </Link>
+          )}
         </div>
       )}
 

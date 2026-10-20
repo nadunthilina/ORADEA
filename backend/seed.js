@@ -25,7 +25,8 @@ async function seed() {
           category: p.category,
           price: p.price,
           unit: p.unit,
-          tags: p.tags
+          tags: p.tags,
+          isAvailable: true
         });
         await prod.save();
       }

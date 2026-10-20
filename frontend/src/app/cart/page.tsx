@@ -81,7 +81,14 @@ export default function CartPage() {
                       <Trash2 size={16} />
                     </button>
                   </div>
-                  <div className="text-xs text-gray-500 mb-auto">{item.unit || '1 portion'}</div>
+                  <div className="flex items-center gap-2 mb-auto flex-wrap">
+                    <span className="text-xs text-gray-500">{item.unit || '1 portion'}</span>
+                    {item.isAvailable === false && (
+                      <span className="inline-flex items-center gap-1 text-[10px] font-extrabold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                        Unavailable today
+                      </span>
+                    )}
+                  </div>
                   
                   <div className="flex items-center justify-between mt-2">
                     <span className="font-bold text-gray-900">

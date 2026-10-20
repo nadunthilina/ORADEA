@@ -370,11 +370,39 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
+// Helper to find product by string id or MongoDB _id
+const getProductFilter = (id) => {
+  return mongoose.Types.ObjectId.isValid(id)
+    ? { $or: [{ id: id }, { _id: id }] }
+    : { id: id };
+};
+
 // Update Product
 app.put('/api/products/:id', async (req, res) => {
   try {
-    const updated = await Product.findOneAndUpdate({ id: req.params.id }, req.body, { new: true });
+    const updated = await Product.findOneAndUpdate(getProductFilter(req.params.id), req.body, { new: true });
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'Product not found' });
+    }
     res.status(200).json({ success: true, product: updated });
+  } catch (error) {
+    res.status(500).json({ success: false, error: 'Server error' });
+  }
+});
+
+// Toggle Availability (Blur / Unblur item)
+app.patch('/api/products/:id/toggle-availability', async (req, res) => {
+  try {
+    const product = await Product.findOne(getProductFilter(req.params.id));
+    if (!product) {
+      return res.status(404).json({ success: false, error: 'Product not found' });
+    }
+    const nextState = typeof req.body.isAvailable === 'boolean' 
+      ? req.body.isAvailable 
+      : (product.isAvailable === false ? true : false);
+    product.isAvailable = nextState;
+    await product.save();
+    res.status(200).json({ success: true, product });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Server error' });
   }
@@ -383,7 +411,7 @@ app.put('/api/products/:id', async (req, res) => {
 // Delete Product
 app.delete('/api/products/:id', async (req, res) => {
   try {
-    await Product.findOneAndDelete({ id: req.params.id });
+    await Product.findOneAndDelete(getProductFilter(req.params.id));
     res.status(200).json({ success: true });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Server error' });

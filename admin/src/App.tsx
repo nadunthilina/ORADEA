@@ -14,7 +14,10 @@ import {
   ChefHat, 
   Bell,
   MapPin,
-  Navigation 
+  Navigation,
+  Eye,
+  EyeOff,
+  Ban
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -41,6 +44,10 @@ export default function AdminDashboard() {
   const [userFormError, setUserFormError] = useState('');
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+
+  // Menu Management State
+  const [menuSearchTerm, setMenuSearchTerm] = useState('');
+  const [menuFilter, setMenuFilter] = useState<'all' | 'available' | 'blurred'>('all');
 
   useEffect(() => {
     const isAuth = localStorage.getItem('adminAuth');
@@ -166,15 +173,18 @@ export default function AdminDashboard() {
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
+    const isAvailableVal = formData.get('isAvailable') === 'on';
     const productData = {
       title: formData.get('title'),
       category: formData.get('category'),
       price: Number(formData.get('price')),
       image: formData.get('image') || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80',
       unit: formData.get('unit') || '1 portion',
+      isAvailable: isAvailableVal,
     };
 
-    const url = editingProduct ? `/api/products/${editingProduct.id}` : '/api/products';
+    const targetId = editingProduct ? (editingProduct.id || editingProduct._id) : '';
+    const url = editingProduct ? `/api/products/${targetId}` : '/api/products';
     const method = editingProduct ? 'PUT' : 'POST';
 
     try {
@@ -193,8 +203,31 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleDeleteProduct = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this item?')) return;
+  const handleToggleProductAvailability = async (product: any) => {
+    const currentStatus = product.isAvailable !== false;
+    const nextStatus = !currentStatus;
+    const targetId = product.id || product._id;
+
+    // Optimistic UI update
+    setProducts(prev => prev.map(p => ((p.id === targetId || p._id === targetId) ? { ...p, isAvailable: nextStatus } : p)));
+
+    try {
+      const res = await fetch(`/api/products/${targetId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ isAvailable: nextStatus })
+      });
+      if (!res.ok) {
+        fetchProducts();
+      }
+    } catch (err) {
+      console.error(err);
+      fetchProducts();
+    }
+  };
+
+  const handleDeleteProduct = async (id: string, title?: string) => {
+    if (!confirm(`Are you sure you want to delete ${title ? `"${title}"` : 'this item'}?`)) return;
     try {
       await fetch(`/api/products/${id}`, { method: 'DELETE' });
       fetchProducts();
@@ -1717,74 +1750,305 @@ export default function AdminDashboard() {
           </div>
         ) : (
           <div>
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold">Menu Items</h2>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+              <div>
+                <h2 className="text-xl font-black text-gray-900 tracking-tight">Menu Items Management</h2>
+                <p className="text-xs text-gray-500 font-medium mt-0.5">
+                  Blur out-of-stock items so customers cannot select or order them today.
+                </p>
+              </div>
               <button 
                 onClick={() => { setEditingProduct(null); setShowProductModal(true); }}
-                className="bg-gray-900 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-gray-800"
+                className="bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
               >
-                + Add Item
+                <span>+ Add Menu Item</span>
               </button>
             </div>
+
+            {/* Filter and Search Bar */}
+            <div className="bg-white p-3 rounded-2xl border border-gray-200 mb-4 flex flex-col sm:flex-row gap-3 items-center justify-between shadow-xs">
+              <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                <button
+                  onClick={() => setMenuFilter('all')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    menuFilter === 'all' 
+                      ? 'bg-gray-900 text-white shadow-xs' 
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+                >
+                  All ({products.length})
+                </button>
+                <button
+                  onClick={() => setMenuFilter('available')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                    menuFilter === 'available' 
+                      ? 'bg-green-600 text-white shadow-xs' 
+                      : 'bg-green-50 text-green-700 hover:bg-green-100'
+                  }`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+                  Available ({products.filter(p => p.isAvailable !== false).length})
+                </button>
+                <button
+                  onClick={() => setMenuFilter('blurred')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
+                    menuFilter === 'blurred' 
+                      ? 'bg-amber-600 text-white shadow-xs' 
+                      : 'bg-amber-50 text-amber-700 hover:bg-amber-100'
+                  }`}
+                >
+                  <EyeOff size={12} />
+                  Blurred / Out of Stock ({products.filter(p => p.isAvailable === false).length})
+                </button>
+              </div>
+
+              <div className="w-full sm:w-64">
+                <input
+                  type="text"
+                  value={menuSearchTerm}
+                  onChange={(e) => setMenuSearchTerm(e.target.value)}
+                  placeholder="Search item or category..."
+                  className="w-full px-3 py-1.5 text-xs bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-gray-900 transition-all"
+                />
+              </div>
+            </div>
             
-            <div className="grid gap-4">
-              {products.map(product => (
-                <div key={product._id} className="bg-white p-4 rounded-2xl shadow-sm border border-gray-200 flex justify-between items-center">
-                  <div className="flex items-center gap-4">
-                    <img src={product.image} alt={product.title} className="w-16 h-16 rounded-xl object-cover bg-gray-100" />
-                    <div>
-                      <h3 className="font-black text-lg text-gray-900">{product.title}</h3>
-                      <p className="text-xs text-gray-500 font-bold uppercase">{product.category}</p>
-                      <p className="text-sm font-bold text-green-600 mt-1">Lei {product.price}</p>
+            <div className="grid gap-3">
+              {products
+                .filter(p => {
+                  if (menuFilter === 'available') return p.isAvailable !== false;
+                  if (menuFilter === 'blurred') return p.isAvailable === false;
+                  return true;
+                })
+                .filter(p => {
+                  if (!menuSearchTerm) return true;
+                  const term = menuSearchTerm.toLowerCase();
+                  return (
+                    (p.title && p.title.toLowerCase().includes(term)) ||
+                    (p.category && p.category.toLowerCase().includes(term))
+                  );
+                })
+                .map(product => {
+                  const isAvailable = product.isAvailable !== false;
+                  return (
+                    <div 
+                      key={product.id || product._id} 
+                      className={`p-4 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                        isAvailable 
+                          ? 'bg-white border-gray-200 hover:border-gray-300 shadow-xs' 
+                          : 'bg-amber-50/40 border-amber-300 shadow-xs'
+                      }`}
+                    >
+                      <div className="flex items-center gap-4 min-w-0">
+                        <div className="relative shrink-0">
+                          <img 
+                            src={product.image} 
+                            alt={product.title} 
+                            className={`w-16 h-16 rounded-xl object-cover bg-gray-100 transition-all ${
+                              !isAvailable ? 'filter blur-[0.8px] opacity-70 grayscale-[30%]' : ''
+                            }`} 
+                          />
+                          {!isAvailable && (
+                            <div className="absolute inset-0 bg-black/25 rounded-xl flex items-center justify-center backdrop-blur-[0.5px]">
+                              <EyeOff size={18} className="text-white drop-shadow-md" />
+                            </div>
+                          )}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <h3 className="font-black text-base text-gray-900 truncate">{product.title}</h3>
+                            {isAvailable ? (
+                              <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 border border-green-200 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                                <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
+                                Available
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase">
+                                <EyeOff size={11} className="text-amber-700" />
+                                Blurred / Out of Stock
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs mt-1">
+                            <span className="text-gray-500 font-bold uppercase">{product.category}</span>
+                            <span className="text-gray-300">•</span>
+                            <span className="font-extrabold text-green-600">Lei {Number(product.price).toFixed(2)}</span>
+                            {product.unit && (
+                              <>
+                                <span className="text-gray-300">•</span>
+                                <span className="text-gray-400">{product.unit}</span>
+                              </>
+                            )}
+                          </div>
+                          {!isAvailable && (
+                            <p className="text-[11px] font-medium text-amber-700 mt-1 flex items-center gap-1">
+                              <Ban size={12} />
+                              <span>Customers see this item blurred and cannot add it to their cart.</span>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-2 shrink-0 self-end md:self-center">
+                        {/* Quick Blur / Unblur Button */}
+                        <button 
+                          type="button"
+                          onClick={() => handleToggleProductAvailability(product)}
+                          className={`px-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 ${
+                            isAvailable 
+                              ? 'bg-amber-100/80 hover:bg-amber-200 text-amber-800 border border-amber-300' 
+                              : 'bg-green-600 hover:bg-green-700 text-white'
+                          }`}
+                          title={isAvailable ? "Click to blur this item so users cannot select it" : "Click to unblur and make available"}
+                        >
+                          {isAvailable ? (
+                            <>
+                              <EyeOff size={14} />
+                              <span>Blur Item (Out of Stock)</span>
+                            </>
+                          ) : (
+                            <>
+                              <Eye size={14} />
+                              <span>Make Available (Unblur)</span>
+                            </>
+                          )}
+                        </button>
+
+                        <button 
+                          onClick={() => { setEditingProduct(product); setShowProductModal(true); }}
+                          className="px-3 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteProduct(product.id || product._id, product.title)}
+                          className="px-3 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl text-xs font-bold transition-colors cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button 
-                      onClick={() => { setEditingProduct(product); setShowProductModal(true); }}
-                      className="p-2 text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
-                    >
-                      Edit
-                    </button>
-                    <button 
-                      onClick={() => handleDeleteProduct(product.id)}
-                      className="p-2 text-red-600 bg-red-50 rounded-lg hover:bg-red-100"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
+
               {products.length === 0 && (
                 <div className="bg-white p-8 text-center rounded-2xl border border-dashed border-gray-300">
                   <p className="text-gray-500 text-sm font-medium">No menu items found. Add some!</p>
                 </div>
               )}
+
+              {products.length > 0 && products.filter(p => {
+                if (menuFilter === 'available') return p.isAvailable !== false;
+                if (menuFilter === 'blurred') return p.isAvailable === false;
+                return true;
+              }).length === 0 && (
+                <div className="bg-white p-8 text-center rounded-2xl border border-dashed border-gray-300">
+                  <p className="text-gray-500 text-sm font-medium">No items match the current filter/search.</p>
+                </div>
+              )}
             </div>
 
+            {/* Product Add / Edit Modal */}
             {showProductModal && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-                <div className="bg-white rounded-2xl p-6 w-full max-w-md">
-                  <h2 className="text-xl font-bold mb-4">{editingProduct ? 'Edit Menu Item' : 'Add Menu Item'}</h2>
+              <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+                <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-100">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-black text-gray-900 tracking-tight">
+                      {editingProduct ? 'Edit Menu Item' : 'Add Menu Item'}
+                    </h2>
+                    <button 
+                      onClick={() => setShowProductModal(false)}
+                      className="text-gray-400 hover:text-gray-600 text-2xl leading-none font-bold p-1 cursor-pointer"
+                    >
+                      &times;
+                    </button>
+                  </div>
+
                   <form onSubmit={handleSaveProduct} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-bold mb-1">Title</label>
-                      <input name="title" defaultValue={editingProduct?.title} required className="w-full border p-2 rounded-lg" />
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Title</label>
+                      <input 
+                        name="title" 
+                        defaultValue={editingProduct?.title} 
+                        required 
+                        className="w-full border border-gray-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none" 
+                        placeholder="e.g. Dolphin Kottu"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold mb-1">Category</label>
-                      <input name="category" defaultValue={editingProduct?.category} required className="w-full border p-2 rounded-lg" placeholder="e.g. Kottu, Rice, Drinks" />
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Category</label>
+                      <input 
+                        name="category" 
+                        defaultValue={editingProduct?.category} 
+                        required 
+                        className="w-full border border-gray-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none" 
+                        placeholder="e.g. Kottu, Fried Rice, Drinks" 
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold mb-1">Price (Lei)</label>
-                      <input type="number" step="0.01" name="price" defaultValue={editingProduct?.price} required className="w-full border p-2 rounded-lg" />
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Price (Lei)</label>
+                      <input 
+                        type="number" 
+                        step="0.01" 
+                        name="price" 
+                        defaultValue={editingProduct?.price} 
+                        required 
+                        className="w-full border border-gray-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none" 
+                        placeholder="35.00"
+                      />
                     </div>
                     <div>
-                      <label className="block text-sm font-bold mb-1">Image URL (Optional)</label>
-                      <input name="image" defaultValue={editingProduct?.image} className="w-full border p-2 rounded-lg" placeholder="Leave empty for default image" />
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Portion / Unit</label>
+                      <input 
+                        name="unit" 
+                        defaultValue={editingProduct?.unit || '1 portion'} 
+                        className="w-full border border-gray-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none" 
+                        placeholder="1 portion"
+                      />
                     </div>
-                    <div className="flex gap-2 pt-4">
-                      <button type="button" onClick={() => setShowProductModal(false)} className="flex-1 py-2 bg-gray-100 rounded-lg font-bold">Cancel</button>
-                      <button type="submit" className="flex-1 py-2 bg-gray-900 text-white rounded-lg font-bold">Save</button>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-700 mb-1">Image URL (Optional)</label>
+                      <input 
+                        name="image" 
+                        defaultValue={editingProduct?.image} 
+                        className="w-full border border-gray-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none" 
+                        placeholder="Leave empty for default image" 
+                      />
+                    </div>
+
+                    {/* Availability Switch */}
+                    <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-200">
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input 
+                          type="checkbox" 
+                          name="isAvailable" 
+                          defaultChecked={editingProduct ? editingProduct.isAvailable !== false : true}
+                          className="mt-1 w-4 h-4 rounded text-green-600 focus:ring-green-500 border-gray-300 cursor-pointer"
+                        />
+                        <div>
+                          <span className="block text-sm font-bold text-gray-900">Available to Customers</span>
+                          <span className="block text-xs text-gray-500 mt-0.5">
+                            Uncheck this to blur the item and disable selection when it's out of stock today.
+                          </span>
+                        </div>
+                      </label>
+                    </div>
+
+                    <div className="flex gap-2 pt-2">
+                      <button 
+                        type="button" 
+                        onClick={() => setShowProductModal(false)} 
+                        className="flex-1 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm transition-colors cursor-pointer"
+                      >
+                        Cancel
+                      </button>
+                      <button 
+                        type="submit" 
+                        className="flex-1 py-2.5 bg-gray-900 hover:bg-black text-white rounded-xl font-bold text-sm shadow-sm transition-colors cursor-pointer"
+                      >
+                        Save
+                      </button>
                     </div>
                   </form>
                 </div>

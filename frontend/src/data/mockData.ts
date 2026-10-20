@@ -8,6 +8,7 @@ export interface Product {
   tags: string[];
   isPopular?: boolean;
   image?: string;
+  isAvailable?: boolean;
 }
 
 export interface Category {

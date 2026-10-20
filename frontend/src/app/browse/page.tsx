@@ -11,14 +11,20 @@ export default function BrowsePage() {
   const [products, setProducts] = useState<any[]>(MOCK_PRODUCTS);
 
   useEffect(() => {
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        if (data.success && data.products && data.products.length > 0) {
-          setProducts(data.products);
-        }
-      })
-      .catch(err => console.error(err));
+    const fetchLatestProducts = () => {
+      fetch('/api/products')
+        .then(res => res.json())
+        .then(data => {
+          if (data.success && data.products && data.products.length > 0) {
+            setProducts(data.products);
+          }
+        })
+        .catch(err => console.error(err));
+    };
+
+    fetchLatestProducts();
+    const interval = setInterval(fetchLatestProducts, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   // Dynamically compute categories from available products

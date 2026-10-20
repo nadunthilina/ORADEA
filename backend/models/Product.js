@@ -7,7 +7,8 @@ const productSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   image: { type: String, default: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80' },
   unit: { type: String, default: '1 portion' },
-  tags: [{ type: String }]
+  tags: [{ type: String }],
+  isAvailable: { type: Boolean, default: true }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Product', productSchema);
