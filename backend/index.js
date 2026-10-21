@@ -8,16 +8,63 @@ app.use(cors());
 app.use(express.json());
 
 const PORT = process.env.PORT || 5000;
-const MONGODB_URI = process.env.MONGODB_URI;
 
 // Models
 const Order = require('./models/Order');
 const User = require('./models/User');
+const Product = require('./models/Product');
 
-// Database Connection
-mongoose.connect(MONGODB_URI)
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('MongoDB connection error:', err));
+// Database Connection for Serverless & Long-running Node
+let cachedPromise = null;
+
+const connectDB = async () => {
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+
+  const mongoUri = process.env.MONGODB_URI;
+  if (!mongoUri) {
+    throw new Error('MONGODB_URI is not set in environment variables. Please add MONGODB_URI in Vercel Project Settings -> Environment Variables.');
+  }
+
+  if (!cachedPromise) {
+    cachedPromise = mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 8000,
+    }).then(conn => {
+      console.log('✅ Connected to MongoDB');
+      return conn;
+    }).catch(err => {
+      cachedPromise = null;
+      console.error('MongoDB connection error:', err);
+      throw err;
+    });
+  }
+
+  return cachedPromise;
+};
+
+// Connect immediately when running locally
+if (!process.env.VERCEL) {
+  connectDB().catch(() => {});
+}
+
+// Middleware to ensure DB connection is ready before handling DB-dependent requests
+app.use(async (req, res, next) => {
+  if (req.path === '/' || req.path.startsWith('/api/geocode')) {
+    return next();
+  }
+
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('DB Connection middleware error:', err.message);
+    return res.status(500).json({
+      success: false,
+      error: `Database connection error: ${err.message}`
+    });
+  }
+});
 
 // Basic Route
 app.get('/', (req, res) => {
@@ -141,7 +188,7 @@ app.post('/api/auth/register', async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
@@ -171,7 +218,7 @@ app.post('/api/auth/login', async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
@@ -204,7 +251,7 @@ app.post('/api/orders', async (req, res) => {
     res.status(201).json({ success: true, orderId });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
@@ -214,7 +261,7 @@ app.get('/api/orders', async (req, res) => {
     const orders = await Order.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, orders });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
@@ -233,7 +280,7 @@ app.put('/api/orders/:id/status', async (req, res) => {
     res.status(200).json({ success: true, order: updatedOrder });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
@@ -243,7 +290,7 @@ app.get('/api/orders/user/:id', async (req, res) => {
     const orders = await Order.find({ customerId: req.params.id }).sort({ createdAt: -1 });
     res.status(200).json({ success: true, orders });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
@@ -253,7 +300,7 @@ app.get('/api/users', async (req, res) => {
     const users = await User.find().select('-password').sort({ createdAt: -1 });
     res.status(200).json({ success: true, users });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
@@ -329,7 +376,7 @@ app.put('/api/users/:id', async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
@@ -343,11 +390,9 @@ app.delete('/api/users/:id', async (req, res) => {
     res.status(200).json({ success: true, message: 'User deleted successfully' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
-
-const Product = require('./models/Product');
 
 // Get Products
 app.get('/api/products', async (req, res) => {
@@ -355,7 +400,7 @@ app.get('/api/products', async (req, res) => {
     const products = await Product.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, products });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
@@ -366,7 +411,7 @@ app.post('/api/products', async (req, res) => {
     await newProduct.save();
     res.status(201).json({ success: true, product: newProduct });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
@@ -386,7 +431,7 @@ app.put('/api/products/:id', async (req, res) => {
     }
     res.status(200).json({ success: true, product: updated });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
@@ -404,7 +449,7 @@ app.patch('/api/products/:id/toggle-availability', async (req, res) => {
     await product.save();
     res.status(200).json({ success: true, product });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
@@ -414,11 +459,15 @@ app.delete('/api/products/:id', async (req, res) => {
     await Product.findOneAndDelete(getProductFilter(req.params.id));
     res.status(200).json({ success: true });
   } catch (error) {
-    res.status(500).json({ success: false, error: 'Server error' });
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });
 
-// Start Server
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-});
+// Start Server locally if not running on Vercel
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
