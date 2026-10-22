@@ -3,6 +3,30 @@ try {
   dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 } catch (e) {}
 
+const originalLookup = dns.lookup;
+dns.lookup = function (hostname, options, callback) {
+  let cb = callback;
+  let opts = options;
+  if (typeof options === 'function') {
+    cb = options;
+    opts = {};
+  }
+
+  if (hostname && typeof hostname === 'string' && (hostname.includes('mongodb.net') || hostname.includes('cluster0'))) {
+    return dns.resolve4(hostname, (err, addresses) => {
+      if (!err && addresses && addresses.length > 0) {
+        if (opts && opts.all) {
+          return cb(null, addresses.map(addr => ({ address: addr, family: 4 })));
+        }
+        return cb(null, addresses[0], 4);
+      }
+      return originalLookup(hostname, options, cb);
+    });
+  }
+
+  return originalLookup(hostname, options, cb);
+};
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -10,7 +34,8 @@ require('dotenv').config();
 
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '25mb' }));
+app.use(express.urlencoded({ limit: '25mb', extended: true }));
 
 const PORT = process.env.PORT || 5000;
 
@@ -27,38 +52,28 @@ const connectDB = async () => {
     return mongoose.connection;
   }
 
-  const mongoUri = process.env.MONGODB_URI;
+  let mongoUri = process.env.MONGODB_URI;
   if (!mongoUri) {
     throw new Error('MONGODB_URI is not set in environment variables. Please add MONGODB_URI in Vercel Project Settings -> Environment Variables.');
   }
 
+  // Ensure authSource=admin for MongoDB Atlas if not present
+  if (mongoUri.includes('mongodb+srv://') && !mongoUri.includes('authSource=')) {
+    mongoUri += (mongoUri.includes('?') ? '&' : '?') + 'authSource=admin';
+  }
+
   if (!cachedPromise) {
-    cachedPromise = (async () => {
-      try {
-        const conn = await mongoose.connect(mongoUri, {
-          serverSelectionTimeoutMS: 4000,
-        });
-        console.log('✅ Connected to MongoDB Atlas');
-        return conn;
-      } catch (err) {
-        if (!process.env.VERCEL) {
-          console.warn('⚠️ Atlas connection failed (IP not whitelisted or port 27017 blocked by ISP).');
-          console.log('🔄 Connecting to Local MongoDB (mongodb://127.0.0.1:27017/food_order_db)...');
-          try {
-            const localConn = await mongoose.connect('mongodb://127.0.0.1:27017/food_order_db', {
-              serverSelectionTimeoutMS: 3000,
-            });
-            console.log('✅ Connected to Local MongoDB successfully! App running smoothly.');
-            return localConn;
-          } catch (localErr) {
-            console.error('Local MongoDB fallback error:', localErr.message);
-          }
-        }
-        cachedPromise = null;
-        console.error('MongoDB connection error:', err.message);
-        throw err;
-      }
-    })();
+    cachedPromise = mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 15000,
+      family: 4,
+    }).then(conn => {
+      console.log('✅ Connected to MongoDB Atlas');
+      return conn;
+    }).catch(err => {
+      cachedPromise = null;
+      console.error('MongoDB connection error:', err);
+      throw err;
+    });
   }
 
   return cachedPromise;
@@ -66,7 +81,7 @@ const connectDB = async () => {
 
 // Connect immediately when running locally
 if (!process.env.VERCEL) {
-  connectDB().catch(() => {});
+  connectDB().catch(err => console.error('Initial connectDB error:', err.message));
 }
 
 // Middleware to ensure DB connection is ready before handling DB-dependent requests
@@ -290,9 +305,16 @@ app.get('/api/orders', async (req, res) => {
 app.put('/api/orders/clear-printed', async (req, res) => {
   try {
     const { orderIds } = req.body || {};
-    const filter = Array.isArray(orderIds) && orderIds.length > 0
-      ? { _id: { $in: orderIds } }
-      : { orderStatus: 'PRINTED' };
+    let filter = { orderStatus: 'PRINTED' };
+    if (Array.isArray(orderIds) && orderIds.length > 0) {
+      filter = {
+        $or: [
+          { _id: { $in: orderIds } },
+          { orderId: { $in: orderIds } },
+          { orderStatus: 'PRINTED' }
+        ]
+      };
+    }
     const result = await Order.updateMany(
       filter,
       { $set: { orderStatus: 'COMPLETED' } }
@@ -308,11 +330,21 @@ app.put('/api/orders/clear-printed', async (req, res) => {
 app.put('/api/orders/:id/status', async (req, res) => {
   try {
     const { orderStatus } = req.body;
-    const updatedOrder = await Order.findByIdAndUpdate(
-      req.params.id,
-      { orderStatus },
-      { new: true }
-    );
+    let updatedOrder = null;
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      updatedOrder = await Order.findByIdAndUpdate(
+        req.params.id,
+        { orderStatus },
+        { new: true }
+      );
+    }
+    if (!updatedOrder) {
+      updatedOrder = await Order.findOneAndUpdate(
+        { orderId: req.params.id },
+        { orderStatus },
+        { new: true }
+      );
+    }
     if (!updatedOrder) {
       return res.status(404).json({ success: false, error: 'Order not found' });
     }

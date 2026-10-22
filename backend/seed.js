@@ -3,6 +3,30 @@ try {
   dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
 } catch (e) {}
 
+const originalLookup = dns.lookup;
+dns.lookup = function (hostname, options, callback) {
+  let cb = callback;
+  let opts = options;
+  if (typeof options === 'function') {
+    cb = options;
+    opts = {};
+  }
+
+  if (hostname && typeof hostname === 'string' && (hostname.includes('mongodb.net') || hostname.includes('cluster0'))) {
+    return dns.resolve4(hostname, (err, addresses) => {
+      if (!err && addresses && addresses.length > 0) {
+        if (opts && opts.all) {
+          return cb(null, addresses.map(addr => ({ address: addr, family: 4 })));
+        }
+        return cb(null, addresses[0], 4);
+      }
+      return originalLookup(hostname, options, cb);
+    });
+  }
+
+  return originalLookup(hostname, options, cb);
+};
+
 require('dotenv').config();
 const mongoose = require('mongoose');
 const Product = require('./models/Product');

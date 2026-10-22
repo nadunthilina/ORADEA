@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { 
   BarChart3, 
   Receipt, 
@@ -18,8 +18,15 @@ import {
   Eye,
   EyeOff,
   Ban,
-  CheckCheck
+  CheckCheck,
+  Camera,
+  Image as ImageIcon,
+  Upload,
+  Trash2,
+  Link as LinkIcon,
+  Loader2
 } from 'lucide-react';
+import { compressImage } from './utils/imageUtils';
 
 export default function AdminDashboard() {
   const [orders, setOrders] = useState<any[]>([]);
@@ -28,6 +35,11 @@ export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState<'orders' | 'printed' | 'analytics' | 'users' | 'menu'>('orders');
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
+  const [productImage, setProductImage] = useState<string>('');
+  const [isCompressingImage, setIsCompressingImage] = useState<boolean>(false);
+  const [showUrlInput, setShowUrlInput] = useState<boolean>(false);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const [printedOrdersSet, setPrintedOrdersSet] = useState<Set<string>>(new Set());
   const [isClearingAll, setIsClearingAll] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -172,6 +184,22 @@ export default function AdminDashboard() {
       .catch(err => console.error(err));
   };
 
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      setIsCompressingImage(true);
+      const compressed = await compressImage(file, 1000, 1000, 0.82);
+      setProductImage(compressed);
+    } catch (err: any) {
+      console.error('Error compressing image:', err);
+      alert(err?.message || 'Failed to process image. Please try again.');
+    } finally {
+      setIsCompressingImage(false);
+      e.target.value = '';
+    }
+  };
+
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
@@ -180,7 +208,7 @@ export default function AdminDashboard() {
       title: formData.get('title'),
       category: formData.get('category'),
       price: Number(formData.get('price')),
-      image: formData.get('image') || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80',
+      image: productImage || formData.get('image') || 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&q=80',
       unit: formData.get('unit') || '1 portion',
       isAvailable: isAvailableVal,
     };
@@ -252,21 +280,31 @@ export default function AdminDashboard() {
     }
   };
 
-  const isOrderNew = (order: any) =>
-    order.orderStatus !== 'PRINTED' &&
-    order.orderStatus !== 'COMPLETED' &&
-    order.orderStatus !== 'CLEARED' &&
-    !printedOrdersSet.has(order._id);
+  const isOrderNew = (order: any) => {
+    const status = (order.orderStatus || 'NEW').toUpperCase();
+    return (
+      status !== 'PRINTED' &&
+      status !== 'COMPLETED' &&
+      status !== 'CLEARED' &&
+      !printedOrdersSet.has(order._id) &&
+      !printedOrdersSet.has(order.orderId)
+    );
+  };
 
-  const isOrderPrinted = (order: any) =>
-    (order.orderStatus === 'PRINTED' || printedOrdersSet.has(order._id)) &&
-    order.orderStatus !== 'COMPLETED' &&
-    order.orderStatus !== 'CLEARED';
+  const isOrderPrinted = (order: any) => {
+    const status = (order.orderStatus || '').toUpperCase();
+    return (
+      (status === 'PRINTED' || printedOrdersSet.has(order._id) || printedOrdersSet.has(order.orderId)) &&
+      status !== 'COMPLETED' &&
+      status !== 'CLEARED'
+    );
+  };
 
   const handleClearOrder = async (orderId: string) => {
     if (!confirm('Are you sure you want to clear this printed order?')) return;
     try {
-      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, orderStatus: 'COMPLETED' } : o));
+      // Optimistic update for both _id and orderId
+      setOrders(prev => prev.map(o => (o._id === orderId || o.orderId === orderId) ? { ...o, orderStatus: 'COMPLETED' } : o));
       setPrintedOrdersSet(prev => {
         const next = new Set(prev);
         next.delete(orderId);
@@ -288,9 +326,9 @@ export default function AdminDashboard() {
     if (!confirm(`Are you sure you want to clear all ${printedList.length} printed order(s)?`)) return;
 
     setIsClearingAll(true);
-    const orderIds = printedList.map(o => o._id);
+    const orderIds = printedList.map(o => o._id || o.orderId);
     try {
-      setOrders(prev => prev.map(o => orderIds.includes(o._id) ? { ...o, orderStatus: 'COMPLETED' } : o));
+      setOrders(prev => prev.map(o => (orderIds.includes(o._id) || orderIds.includes(o.orderId)) ? { ...o, orderStatus: 'COMPLETED' } : o));
       setPrintedOrdersSet(prev => {
         const next = new Set(prev);
         orderIds.forEach(id => next.delete(id));
@@ -1887,7 +1925,7 @@ export default function AdminDashboard() {
                 </p>
               </div>
               <button 
-                onClick={() => { setEditingProduct(null); setShowProductModal(true); }}
+                onClick={() => { setEditingProduct(null); setProductImage(''); setShowUrlInput(false); setShowProductModal(true); }}
                 className="bg-gray-900 hover:bg-black text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 cursor-pointer active:scale-95"
               >
                 <span>+ Add Menu Item</span>
@@ -2045,7 +2083,12 @@ export default function AdminDashboard() {
                         </button>
 
                         <button 
-                          onClick={() => { setEditingProduct(product); setShowProductModal(true); }}
+                          onClick={() => { 
+                            setEditingProduct(product); 
+                            setProductImage(product.image || ''); 
+                            setShowUrlInput(false);
+                            setShowProductModal(true); 
+                          }}
                           className="px-3 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                         >
                           Edit
@@ -2080,12 +2123,17 @@ export default function AdminDashboard() {
 
             {/* Product Add / Edit Modal */}
             {showProductModal && (
-              <div className="fixed inset-0 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 z-50">
-                <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-gray-100">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-black text-gray-900 tracking-tight">
-                      {editingProduct ? 'Edit Menu Item' : 'Add Menu Item'}
-                    </h2>
+              <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+                <div className="bg-white rounded-2xl p-6 w-full max-w-lg shadow-2xl border border-gray-100 max-h-[92vh] overflow-y-auto">
+                  <div className="flex justify-between items-center mb-4 pb-3 border-b border-gray-100">
+                    <div>
+                      <h2 className="text-xl font-black text-gray-900 tracking-tight">
+                        {editingProduct ? 'Edit Menu Item' : 'Add New Menu Item'}
+                      </h2>
+                      <p className="text-xs text-gray-500 font-medium mt-0.5">
+                        Add title, price, and upload food photo for customer menu.
+                      </p>
+                    </div>
                     <button 
                       onClick={() => setShowProductModal(false)}
                       className="text-gray-400 hover:text-gray-600 text-2xl leading-none font-bold p-1 cursor-pointer"
@@ -2094,7 +2142,137 @@ export default function AdminDashboard() {
                     </button>
                   </div>
 
+                  {/* Hidden File Inputs for Camera and Gallery */}
+                  <input 
+                    type="file" 
+                    ref={cameraInputRef} 
+                    accept="image/*" 
+                    capture="environment" 
+                    className="hidden" 
+                    onChange={handleImageFileChange} 
+                  />
+                  <input 
+                    type="file" 
+                    ref={galleryInputRef} 
+                    accept="image/*" 
+                    className="hidden" 
+                    onChange={handleImageFileChange} 
+                  />
+
                   <form onSubmit={handleSaveProduct} className="space-y-4">
+                    {/* Photo Upload Section */}
+                    <div className="bg-gray-50 p-3.5 rounded-2xl border border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                          <ImageIcon size={14} className="text-gray-600" />
+                          <span>Food Photo</span>
+                        </label>
+                        {productImage && (
+                          <button
+                            type="button"
+                            onClick={() => setProductImage('')}
+                            className="text-[11px] text-red-600 hover:text-red-700 font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                          >
+                            <Trash2 size={12} />
+                            <span>Remove Photo</span>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Image Preview Container */}
+                      {productImage ? (
+                        <div className="relative rounded-xl overflow-hidden border border-gray-200 bg-white mb-3 shadow-2xs group">
+                          <img 
+                            src={productImage} 
+                            alt="Food preview" 
+                            className="w-full h-44 object-cover" 
+                          />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => cameraInputRef.current?.click()}
+                              className="px-3 py-1.5 bg-white/90 hover:bg-white text-gray-900 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                            >
+                              <Camera size={13} />
+                              <span>Retake</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => galleryInputRef.current?.click()}
+                              className="px-3 py-1.5 bg-white/90 hover:bg-white text-gray-900 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-sm cursor-pointer"
+                            >
+                              <Upload size={13} />
+                              <span>Change</span>
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center bg-white/60 mb-3">
+                          <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2 text-gray-500">
+                            <ImageIcon size={20} />
+                          </div>
+                          <p className="text-xs font-bold text-gray-700">No photo selected</p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">Take a food picture or pick from device gallery</p>
+                        </div>
+                      )}
+
+                      {/* Camera and Gallery Upload Buttons */}
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          disabled={isCompressingImage}
+                          onClick={() => cameraInputRef.current?.click()}
+                          className="py-2.5 px-3 bg-white hover:bg-gray-100 text-gray-900 rounded-xl border border-gray-200 font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                        >
+                          {isCompressingImage ? (
+                            <Loader2 size={14} className="animate-spin text-gray-500" />
+                          ) : (
+                            <Camera size={14} className="text-indigo-600" />
+                          )}
+                          <span>Take Photo (Camera)</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isCompressingImage}
+                          onClick={() => galleryInputRef.current?.click()}
+                          className="py-2.5 px-3 bg-white hover:bg-gray-100 text-gray-900 rounded-xl border border-gray-200 font-bold text-xs flex items-center justify-center gap-1.5 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                        >
+                          {isCompressingImage ? (
+                            <Loader2 size={14} className="animate-spin text-gray-500" />
+                          ) : (
+                            <Upload size={14} className="text-emerald-600" />
+                          )}
+                          <span>Gallery / Files</span>
+                        </button>
+                      </div>
+
+                      {/* URL Toggle Fallback */}
+                      <div className="mt-2.5 pt-2 border-t border-gray-200/70">
+                        <button
+                          type="button"
+                          onClick={() => setShowUrlInput(!showUrlInput)}
+                          className="text-[11px] font-bold text-gray-500 hover:text-gray-800 flex items-center gap-1 cursor-pointer transition-colors"
+                        >
+                          <LinkIcon size={11} />
+                          <span>{showUrlInput ? 'Hide Image URL input' : 'Or paste an Image URL'}</span>
+                        </button>
+
+                        {showUrlInput && (
+                          <div className="mt-2">
+                            <input 
+                              name="image" 
+                              value={productImage}
+                              onChange={(e) => setProductImage(e.target.value)}
+                              className="w-full border border-gray-300 p-2 rounded-xl text-xs focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none bg-white" 
+                              placeholder="https://images.unsplash.com/photo-..." 
+                            />
+                            <p className="text-[10px] text-gray-400 mt-1">Direct web link to image (optional alternative to file upload).</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
                     <div>
                       <label className="block text-xs font-bold text-gray-700 mb-1">Title</label>
                       <input 
@@ -2136,15 +2314,6 @@ export default function AdminDashboard() {
                         placeholder="1 portion"
                       />
                     </div>
-                    <div>
-                      <label className="block text-xs font-bold text-gray-700 mb-1">Image URL (Optional)</label>
-                      <input 
-                        name="image" 
-                        defaultValue={editingProduct?.image} 
-                        className="w-full border border-gray-300 p-2.5 rounded-xl text-sm focus:ring-2 focus:ring-gray-900 focus:border-gray-900 outline-none" 
-                        placeholder="Leave empty for default image" 
-                      />
-                    </div>
 
                     {/* Availability Switch */}
                     <div className="bg-gray-50 p-3.5 rounded-xl border border-gray-200">
@@ -2174,9 +2343,17 @@ export default function AdminDashboard() {
                       </button>
                       <button 
                         type="submit" 
-                        className="flex-1 py-2.5 bg-gray-900 hover:bg-black text-white rounded-xl font-bold text-sm shadow-sm transition-colors cursor-pointer"
+                        disabled={isCompressingImage}
+                        className="flex-1 py-2.5 bg-gray-900 hover:bg-black text-white rounded-xl font-bold text-sm shadow-sm transition-colors cursor-pointer flex items-center justify-center gap-1.5 disabled:opacity-50"
                       >
-                        Save
+                        {isCompressingImage ? (
+                          <>
+                            <Loader2 size={15} className="animate-spin" />
+                            <span>Optimizing Image...</span>
+                          </>
+                        ) : (
+                          <span>Save Item</span>
+                        )}
                       </button>
                     </div>
                   </form>

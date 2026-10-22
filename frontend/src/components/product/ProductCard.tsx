@@ -68,13 +68,30 @@ export function ProductCard({ product }: ProductCardProps) {
       </button>
 
       {/* Card Body - visually blurred and subdued when unavailable */}
-      <div className={`flex flex-col flex-1 pr-8 transition-all ${
+      <div className={`flex flex-col flex-1 transition-all ${
         !isAvailable ? 'filter blur-[1px] opacity-60 select-none pt-7' : ''
       }`}>
-        <div className="text-xs font-bold text-gray-400 mb-1 tracking-wider uppercase">{product.category}</div>
-        <h3 className="font-black text-lg text-gray-900 leading-tight mb-2">
-          {product.title}
-        </h3>
+        <div className="flex gap-3 items-start">
+          {product.image && (
+            <div className="relative w-20 h-20 rounded-xl overflow-hidden shrink-0 bg-gray-100 border border-gray-100 shadow-2xs">
+              <img 
+                src={product.image} 
+                alt={product.title} 
+                className="w-full h-full object-cover" 
+                loading="lazy"
+              />
+            </div>
+          )}
+          <div className="flex-1 min-w-0 pr-6">
+            <div className="text-xs font-bold text-gray-400 mb-1 tracking-wider uppercase">{product.category}</div>
+            <h3 className="font-black text-lg text-gray-900 leading-tight mb-1">
+              {product.title}
+            </h3>
+            {product.unit && (
+              <span className="text-[11px] text-gray-400 font-medium">{product.unit}</span>
+            )}
+          </div>
+        </div>
         
         <div className="flex items-center justify-between mt-4">
           <div>
