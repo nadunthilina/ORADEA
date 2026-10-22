@@ -1,3 +1,8 @@
+const dns = require('dns');
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch (e) {}
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -28,16 +33,32 @@ const connectDB = async () => {
   }
 
   if (!cachedPromise) {
-    cachedPromise = mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 8000,
-    }).then(conn => {
-      console.log('✅ Connected to MongoDB');
-      return conn;
-    }).catch(err => {
-      cachedPromise = null;
-      console.error('MongoDB connection error:', err);
-      throw err;
-    });
+    cachedPromise = (async () => {
+      try {
+        const conn = await mongoose.connect(mongoUri, {
+          serverSelectionTimeoutMS: 4000,
+        });
+        console.log('✅ Connected to MongoDB Atlas');
+        return conn;
+      } catch (err) {
+        if (!process.env.VERCEL) {
+          console.warn('⚠️ Atlas connection failed (IP not whitelisted or port 27017 blocked by ISP).');
+          console.log('🔄 Connecting to Local MongoDB (mongodb://127.0.0.1:27017/food_order_db)...');
+          try {
+            const localConn = await mongoose.connect('mongodb://127.0.0.1:27017/food_order_db', {
+              serverSelectionTimeoutMS: 3000,
+            });
+            console.log('✅ Connected to Local MongoDB successfully! App running smoothly.');
+            return localConn;
+          } catch (localErr) {
+            console.error('Local MongoDB fallback error:', localErr.message);
+          }
+        }
+        cachedPromise = null;
+        console.error('MongoDB connection error:', err.message);
+        throw err;
+      }
+    })();
   }
 
   return cachedPromise;
@@ -261,6 +282,24 @@ app.get('/api/orders', async (req, res) => {
     const orders = await Order.find().sort({ createdAt: -1 });
     res.status(200).json({ success: true, orders });
   } catch (error) {
+    res.status(500).json({ success: false, error: error.message || 'Server error' });
+  }
+});
+
+// Clear All Printed Orders Route (Mark as COMPLETED)
+app.put('/api/orders/clear-printed', async (req, res) => {
+  try {
+    const { orderIds } = req.body || {};
+    const filter = Array.isArray(orderIds) && orderIds.length > 0
+      ? { _id: { $in: orderIds } }
+      : { orderStatus: 'PRINTED' };
+    const result = await Order.updateMany(
+      filter,
+      { $set: { orderStatus: 'COMPLETED' } }
+    );
+    res.status(200).json({ success: true, count: result.modifiedCount });
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ success: false, error: error.message || 'Server error' });
   }
 });

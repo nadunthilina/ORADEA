@@ -20,7 +20,8 @@ import {
   Navigation,
   Eye,
   EyeOff,
-  Ban
+  Ban,
+  CheckCheck
 } from 'lucide-react';
 
 const DynamicAdminOrderMapModal = dynamic(() => import('@/components/admin/AdminOrderMapModal'), {
@@ -36,6 +37,7 @@ export default function AdminDashboard() {
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any>(null);
   const [printedOrdersSet, setPrintedOrdersSet] = useState<Set<string>>(new Set());
+  const [isClearingAll, setIsClearingAll] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -255,6 +257,62 @@ export default function AdminDashboard() {
       setOrders(prev => prev.map(o => o._id === orderId ? { ...o, orderStatus: 'PRINTED' } : o));
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const isOrderNew = (order: any) =>
+    order.orderStatus !== 'PRINTED' &&
+    order.orderStatus !== 'COMPLETED' &&
+    order.orderStatus !== 'CLEARED' &&
+    !printedOrdersSet.has(order._id);
+
+  const isOrderPrinted = (order: any) =>
+    (order.orderStatus === 'PRINTED' || printedOrdersSet.has(order._id)) &&
+    order.orderStatus !== 'COMPLETED' &&
+    order.orderStatus !== 'CLEARED';
+
+  const handleClearOrder = async (orderId: string) => {
+    if (!confirm('Are you sure you want to clear this printed order?')) return;
+    try {
+      setOrders(prev => prev.map(o => o._id === orderId ? { ...o, orderStatus: 'COMPLETED' } : o));
+      setPrintedOrdersSet(prev => {
+        const next = new Set(prev);
+        next.delete(orderId);
+        return next;
+      });
+      await fetch(`/api/orders/${orderId}/status`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderStatus: 'COMPLETED' })
+      });
+    } catch (err) {
+      console.error('Error clearing order:', err);
+    }
+  };
+
+  const handleClearAllPrinted = async () => {
+    const printedList = orders.filter(isOrderPrinted);
+    if (printedList.length === 0) return;
+    if (!confirm(`Are you sure you want to clear all ${printedList.length} printed order(s)?`)) return;
+
+    setIsClearingAll(true);
+    const orderIds = printedList.map(o => o._id);
+    try {
+      setOrders(prev => prev.map(o => orderIds.includes(o._id) ? { ...o, orderStatus: 'COMPLETED' } : o));
+      setPrintedOrdersSet(prev => {
+        const next = new Set(prev);
+        orderIds.forEach(id => next.delete(id));
+        return next;
+      });
+      await fetch('/api/orders/clear-printed', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderIds })
+      });
+    } catch (err) {
+      console.error('Error clearing all printed orders:', err);
+    } finally {
+      setIsClearingAll(false);
     }
   };
 
@@ -700,7 +758,7 @@ export default function AdminDashboard() {
   const totalOrdersCount = analyticsOrders.length;
   const avgOrderValue = totalOrdersCount > 0 ? totalRevenue / totalOrdersCount : 0;
 
-  const printedOrdersCount = analyticsOrders.filter(o => o.orderStatus === 'PRINTED' || printedOrdersSet.has(o._id)).length;
+  const printedOrdersCount = analyticsOrders.filter(o => o.orderStatus === 'PRINTED' || o.orderStatus === 'COMPLETED' || o.orderStatus === 'CLEARED' || printedOrdersSet.has(o._id)).length;
   const newOrdersCount = totalOrdersCount - printedOrdersCount;
 
   // Item sales map
@@ -930,9 +988,9 @@ export default function AdminDashboard() {
           >
             <Bell size={16} className={activeTab === 'orders' ? 'text-amber-500' : 'text-slate-400'} />
             <span>New Orders</span>
-            {orders.filter(o => o.orderStatus !== 'PRINTED' && !printedOrdersSet.has(o._id)).length > 0 && (
+            {orders.filter(isOrderNew).length > 0 && (
               <span className="bg-amber-500 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full animate-pulse">
-                {orders.filter(o => o.orderStatus !== 'PRINTED' && !printedOrdersSet.has(o._id)).length}
+                {orders.filter(isOrderNew).length}
               </span>
             )}
           </button>
@@ -947,6 +1005,11 @@ export default function AdminDashboard() {
           >
             <Printer size={16} className={activeTab === 'printed' ? 'text-blue-500' : 'text-slate-400'} />
             <span>Printed</span>
+            {orders.filter(isOrderPrinted).length > 0 && (
+              <span className="bg-blue-600 text-white text-[10px] font-black px-1.5 py-0.2 rounded-full">
+                {orders.filter(isOrderPrinted).length}
+              </span>
+            )}
           </button>
 
           <button 
@@ -991,13 +1054,47 @@ export default function AdminDashboard() {
         
         {activeTab === 'orders' || activeTab === 'printed' ? (
           <div className="grid gap-4">
-            {orders.filter(order => activeTab === 'orders' ? (order.orderStatus !== 'PRINTED' && !printedOrdersSet.has(order._id)) : (order.orderStatus === 'PRINTED' || printedOrdersSet.has(order._id))).map(order => {
+            {activeTab === 'printed' && (
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 md:p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                    <Printer size={20} />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <h2 className="text-sm md:text-base font-black text-slate-900 tracking-tight">
+                        Printed Orders Queue
+                      </h2>
+                      <span className="bg-blue-100 text-blue-700 text-[11px] font-black px-2 py-0.5 rounded-full">
+                        {orders.filter(isOrderPrinted).length}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 font-medium">
+                      Orders sent to kitchen or delivery. Clear them once completed or delivered.
+                    </p>
+                  </div>
+                </div>
+
+                {orders.filter(isOrderPrinted).length > 0 && (
+                  <button
+                    onClick={handleClearAllPrinted}
+                    disabled={isClearingAll}
+                    className="bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold px-4 py-2.5 rounded-xl text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm disabled:opacity-50"
+                  >
+                    <CheckCheck size={16} />
+                    <span>{isClearingAll ? 'Clearing All...' : 'Clear All Printed'}</span>
+                  </button>
+                )}
+              </div>
+            )}
+
+            {orders.filter(activeTab === 'orders' ? isOrderNew : isOrderPrinted).map(order => {
               const isPrinted = order.orderStatus === 'PRINTED' || printedOrdersSet.has(order._id);
               const isNew = !isPrinted;
               
               return (
                 <div key={order._id} className={`p-4 rounded-2xl shadow-sm border transition-all ${
-                  isPrinted ? 'bg-gray-50 border-gray-100 opacity-60' : 'bg-white border-green-200 shadow-green-100/50'
+                  isPrinted ? 'bg-gray-50 border-gray-100 opacity-80' : 'bg-white border-green-200 shadow-green-100/50'
                 }`}>
                   {isNew && (
                     <div className="mb-2">
@@ -1034,9 +1131,25 @@ export default function AdminDashboard() {
                         </div>
                       )}
                     </div>
-                    <div className="text-right">
-                      <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">{order.orderStatus}</span>
-                      <p className="font-black text-xl mt-2 text-green-600">Lei {order.totalDue}</p>
+                    <div className="text-right flex flex-col items-end gap-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider ${
+                          isPrinted ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'
+                        }`}>
+                          {order.orderStatus}
+                        </span>
+                        {activeTab === 'printed' && (
+                          <button
+                            onClick={() => handleClearOrder(order._id)}
+                            title="Clear this printed order"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white px-2.5 py-1 rounded-lg text-xs font-bold transition-all flex items-center gap-1 shadow-xs cursor-pointer active:scale-95"
+                          >
+                            <CheckCircle2 size={13} />
+                            <span>Clear</span>
+                          </button>
+                        )}
+                      </div>
+                      <p className="font-black text-xl mt-1 text-green-600">Lei {order.totalDue}</p>
                     </div>
                   </div>
                   
@@ -1088,10 +1201,24 @@ export default function AdminDashboard() {
                       <span>Receipt (Delivery)</span>
                     </button>
                   </div>
+
+                  {/* Clear Order Bottom Bar for Printed tab */}
+                  {activeTab === 'printed' && (
+                    <div className="mt-3 pt-3 border-t border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <span className="text-[11px] text-slate-500 font-medium">Ready to remove this order from the printed queue?</span>
+                      <button 
+                        onClick={() => handleClearOrder(order._id)}
+                        className="bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shadow-xs active:scale-95"
+                      >
+                        <CheckCircle2 size={14} className="text-emerald-600" />
+                        <span>Mark Completed & Clear</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
               );
             })}
-            {orders.filter(order => activeTab === 'orders' ? (order.orderStatus !== 'PRINTED' && !printedOrdersSet.has(order._id)) : (order.orderStatus === 'PRINTED' || printedOrdersSet.has(order._id))).length === 0 && (
+            {orders.filter(activeTab === 'orders' ? isOrderNew : isOrderPrinted).length === 0 && (
               <div className="bg-white p-8 text-center rounded-2xl border border-dashed border-gray-300">
                 <p className="text-gray-500 text-sm font-medium">
                   {activeTab === 'orders' ? 'No new orders received yet. Waiting for new orders...' : 'No printed orders.'}
@@ -1474,9 +1601,11 @@ export default function AdminDashboard() {
                           </td>
                           <td className="py-3.5 px-4 text-center whitespace-nowrap">
                             <span className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full uppercase tracking-wider ${
-                              isPrinted
-                                ? 'bg-slate-100 text-slate-600'
-                                : 'bg-emerald-100 text-emerald-800'
+                              order.orderStatus === 'COMPLETED'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : isPrinted
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : 'bg-amber-100 text-amber-800'
                             }`}>
                               {order.orderStatus}
                             </span>
